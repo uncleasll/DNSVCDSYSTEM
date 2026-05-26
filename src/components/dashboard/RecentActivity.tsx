@@ -16,14 +16,14 @@ export function RecentActivity({ operations = [] }: Props) {
     : MOCK_KEY_STATUS.slice(0, 4)
 
   return (
-    <section className="min-h-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-semibold">RECENT ACTIVITY</h2>
-        <button type="button" className="text-sm font-semibold text-blue-600">view all →</button>
+    <section className="min-h-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-semibold">RECENT ACTIVITY</h2>
+        <button type="button" className="text-xs font-semibold text-blue-600">view all -&gt;</button>
       </div>
-      <div className="space-y-2">
+      <div className="max-h-[138px] space-y-1.5 overflow-y-auto pr-1">
         {items.map((item) => (
-          <div key={`${item.unitId}-${item.timestamp}`} className="grid grid-cols-[72px_1fr_104px] items-center text-[13px]">
+          <div key={`${item.unitId}-${item.timestamp}`} className="grid grid-cols-[62px_minmax(64px,1fr)_96px] items-center gap-2 text-[12px]">
             <span className="text-slate-500">{item.timestamp.slice(11)}</span>
             <span className="font-semibold">{item.unitId}</span>
             <StatusBadge status={item.status} blink={item.status === 'KEY_ALERT'} />

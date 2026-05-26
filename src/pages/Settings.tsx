@@ -12,8 +12,8 @@ export function Settings() {
   return (
     <>
       <Header section="SETTINGS" />
-      <section className="grid h-[calc(100vh-104px)] grid-cols-[1fr_320px] gap-4 overflow-hidden">
-        <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <section className="grid h-[calc(100vh-104px)] min-h-0 grid-cols-[minmax(0,1fr)_320px] gap-4 overflow-hidden">
+        <div className="overflow-auto rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-6 text-lg font-black">System settings</h2>
           <div className="grid grid-cols-2 gap-4">
             {settings.map(({ icon: Icon, title, desc, enabled }) => (
@@ -30,9 +30,9 @@ export function Settings() {
             ))}
           </div>
         </div>
-        <aside className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <aside className="overflow-auto rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="mb-4 font-black">MVP readiness</h2>
-          {['Dashboard connected', 'Unit overview connected', 'Alarm & Event connected', 'Equipment demo ready', 'History demo ready', 'Reports demo ready'].map((item) => (
+          {['Dashboard connected', 'Unit overview connected', 'Alarm & Event connected', 'History demo ready', 'Settings demo ready'].map((item) => (
             <div key={item} className="mb-3 flex items-center justify-between text-sm">
               <span>{item}</span>
               <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-black text-emerald-600">OK</span>

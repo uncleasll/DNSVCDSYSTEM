@@ -1,13 +1,11 @@
-import { AlarmClock, Boxes, ClipboardList, Gauge, History, Home, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react'
+import { AlarmClock, Boxes, Gauge, History, Home, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const items = [
   { to: '/', label: 'DASHBOARD', icon: Home },
   { to: '/unit-overview', label: 'UNIT OVERVIEW', icon: Boxes },
-  { to: '/equipment', label: 'EQUIPMENT', icon: Settings },
   { to: '/alarm-event', label: 'ALARM & EVENT', icon: AlarmClock },
   { to: '/history', label: 'HISTORY', icon: History },
-  { to: '/reports', label: 'REPORTS', icon: ClipboardList },
   { to: '/settings', label: 'SETTINGS', icon: Settings },
 ]
 

@@ -1,6 +1,7 @@
 import { Environment, Html, OrbitControls, Text, useGLTF } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
-import { Suspense, memo, useMemo } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import gsap from 'gsap'
+import { Suspense, memo, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { PANEL_DATA as SHARED_PANEL_DATA } from '../../data/panels'
 
@@ -18,6 +19,11 @@ type Placement = {
   rotation: [number, number, number]
   panelId: number
   doubleHeight?: boolean
+}
+
+type Arrow = {
+  position: [number, number, number]
+  target: [number, number, number]
 }
 
 const GLB_VERSION = 'v1.1'
@@ -83,6 +89,56 @@ function getInfo(panelId: number) {
   return PANEL_DATA[panelId] ?? FALLBACK_PANEL_DATA[panelId] ?? { glbKey: 'A' as const, unitId: String(panelId).padStart(2, '0'), name: `PANEL ${panelId}` }
 }
 
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
+}
+
+function getPlacements() {
+  const items: Placement[] = []
+  const startX = 11
+  const colWidth = 2
+  const rowZ: [number, number] = [-4.9, 4.9]
+
+  for (let col = 0; col < 12; col += 1) {
+    for (let floor = 0; floor < 2; floor += 1) {
+      const panelId = col * 2 + (floor === 1 ? 1 : 2)
+      items.push({
+        key: `right-${col}-${floor}`,
+        position: [startX + col * colWidth, floor * 2.5, rowZ[1]],
+        rotation: [0, Math.PI, 0],
+        panelId,
+      })
+    }
+  }
+
+  for (let col = 0; col < 12; col += 1) {
+    if (col === 0) {
+      items.push({
+        key: 'left-0-merged',
+        position: [startX, 0, rowZ[0]],
+        rotation: [0, 0, 0],
+        panelId: 47,
+        doubleHeight: true,
+      })
+      continue
+    }
+
+    for (let floor = 0; floor < 2; floor += 1) {
+      const panelId = 47 - col * 2 + (floor === 1 ? 0 : 1)
+      items.push({
+        key: `left-${col}-${floor}`,
+        position: [startX + col * colWidth, floor * 2.5, rowZ[0]],
+        rotation: [0, 0, 0],
+        panelId,
+      })
+    }
+  }
+
+  return items
+}
+
 const GLBClone = memo(function GLBClone({
   baseScene,
   glbBox,
@@ -101,7 +157,13 @@ const GLBClone = memo(function GLBClone({
   doubleHeight?: boolean
 }) {
   const cloned = useMemo(() => baseScene.clone(), [baseScene])
+  const overlayRef = useRef<THREE.MeshBasicMaterial>(null)
   const info = getInfo(panelId)
+
+  useFrame(({ clock }) => {
+    if (!overlayRef.current) return
+    overlayRef.current.opacity = isActive && Math.floor(clock.elapsedTime * 6) % 2 === 0 ? 0.55 : 0
+  })
 
   const { finalScale, modelOffset, height, depth } = useMemo(() => {
     const targetWidth = 2
@@ -124,12 +186,10 @@ const GLBClone = memo(function GLBClone({
   return (
     <group position={position} rotation={rotation}>
       <primitive object={cloned} scale={finalScale} position={modelOffset} />
-      {isActive && (
-        <mesh position={[0, height / 2, depth / 2 + 0.006]}>
-          <planeGeometry args={[2, height]} />
-          <meshBasicMaterial color="#dc2626" transparent opacity={0.48} depthWrite={false} />
-        </mesh>
-      )}
+      <mesh position={[0, height / 2, depth / 2 + 0.006]}>
+        <planeGeometry args={[2, height]} />
+        <meshBasicMaterial ref={overlayRef} color="#dc2626" transparent opacity={0} depthWrite={false} />
+      </mesh>
       <mesh position={[0, height * 0.83, depth / 2 + 0.004]}>
         <planeGeometry args={[1.4, height * 0.22]} />
         <meshStandardMaterial color="#c2ccd5" metalness={0.78} roughness={0.14} />
@@ -159,6 +219,43 @@ const GLBClone = memo(function GLBClone({
   )
 })
 
+function PathArrow({ position, target, index }: Arrow & { index: number }) {
+  const ref = useRef<THREE.Group>(null)
+  const materialRef = useRef<THREE.MeshBasicMaterial>(null)
+
+  useEffect(() => {
+    ref.current?.position.set(...position)
+    ref.current?.lookAt(...target)
+  }, [position, target])
+
+  useFrame(({ clock }) => {
+    if (!materialRef.current) return
+    materialRef.current.opacity = 0.2 + 0.8 * Math.max(0, Math.sin(clock.elapsedTime * 8 - index * 0.5))
+  })
+
+  const shape = useMemo(() => {
+    const arrow = new THREE.Shape()
+    arrow.moveTo(0, 0.3)
+    arrow.lineTo(0.2, -0.1)
+    arrow.lineTo(0.08, -0.1)
+    arrow.lineTo(0.08, -0.4)
+    arrow.lineTo(-0.08, -0.4)
+    arrow.lineTo(-0.08, -0.1)
+    arrow.lineTo(-0.2, -0.1)
+    arrow.closePath()
+    return arrow
+  }, [])
+
+  return (
+    <group ref={ref}>
+      <mesh rotation={[Math.PI / 2, 0, 0]}>
+        <shapeGeometry args={[shape]} />
+        <meshBasicMaterial ref={materialRef} color="#ff3333" transparent opacity={0.8} side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+    </group>
+  )
+}
+
 function PanelGrid({ activePanelIds }: { activePanelIds: number[] }) {
   const { scene: sceneA } = useGLTF(`/A.glb?v=${GLB_VERSION}`)
   const { scene: sceneB } = useGLTF(`/B.glb?v=${GLB_VERSION}`)
@@ -185,49 +282,7 @@ function PanelGrid({ activePanelIds }: { activePanelIds: number[] }) {
     [sceneA, sceneB, sceneC, sceneD, sceneE, sceneF, sceneG],
   )
 
-  const placements = useMemo<Placement[]>(() => {
-    const items: Placement[] = []
-    const startX = 11
-    const colWidth = 2
-    const rowZ: [number, number] = [-4.9, 4.9]
-
-    for (let col = 0; col < 12; col += 1) {
-      for (let floor = 0; floor < 2; floor += 1) {
-        const panelId = col * 2 + (floor === 1 ? 1 : 2)
-        items.push({
-          key: `right-${col}-${floor}`,
-          position: [startX + col * colWidth, floor * 2.5, rowZ[1]],
-          rotation: [0, Math.PI, 0],
-          panelId,
-        })
-      }
-    }
-
-    for (let col = 0; col < 12; col += 1) {
-      if (col === 0) {
-        items.push({
-          key: 'left-0-merged',
-          position: [startX, 0, rowZ[0]],
-          rotation: [0, 0, 0],
-          panelId: 47,
-          doubleHeight: true,
-        })
-        continue
-      }
-
-      for (let floor = 0; floor < 2; floor += 1) {
-        const panelId = 47 - col * 2 + (floor === 1 ? 0 : 1)
-        items.push({
-          key: `left-${col}-${floor}`,
-          position: [startX + col * colWidth, floor * 2.5, rowZ[0]],
-          rotation: [0, 0, 0],
-          panelId,
-        })
-      }
-    }
-
-    return items
-  }, [])
+  const placements = useMemo<Placement[]>(getPlacements, [])
 
   return (
     <>
@@ -313,7 +368,166 @@ function Room() {
   )
 }
 
-export function ThreePanelViewer({ activePanelIds = [] }: { activePanelIds?: number[] }) {
+function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: number[]; onSequenceDone?: () => void }) {
+  const { camera } = useThree()
+  const controlsRef = useRef<any>(null)
+  const placements = useMemo(getPlacements, [])
+  const defaultTarget = useMemo(() => new THREE.Vector3(21, 2.8, 0), [])
+  const [pathArrows, setPathArrows] = useState<Arrow[]>([])
+
+  const computeArrows = (startPos: THREE.Vector3, panelPos: [number, number, number]) => {
+    const aisleZ = 0
+    const points = [
+      startPos.clone().setY(0),
+      new THREE.Vector3(startPos.x, 0, aisleZ),
+      new THREE.Vector3(panelPos[0], 0, aisleZ),
+      new THREE.Vector3(panelPos[0], 0, panelPos[2]),
+    ]
+    const clean = points.reduce<THREE.Vector3[]>((items, point) => {
+      if (items.length === 0 || point.distanceTo(items[items.length - 1]) > 0.2) items.push(point)
+      return items
+    }, [])
+    const curve = new THREE.CatmullRomCurve3(clean.length > 1 ? clean : [points[0], points[points.length - 1]], false, 'catmullrom', 0.1)
+    const count = Math.max(3, Math.floor(curve.getLength() / 0.7))
+
+    return Array.from({ length: count }, (_, index) => {
+      const t = (index + 1) / (count + 1)
+      const point = curve.getPoint(t)
+      const ahead = curve.getPoint(Math.min(1, t + 0.05))
+      let target: [number, number, number] = [ahead.x, 0.02, ahead.z]
+      if (index === count - 1) target = [panelPos[0], 0.02, panelPos[2]]
+      return { position: [point.x, 0.02, point.z] as [number, number, number], target }
+    })
+  }
+
+  const goHome = () => new Promise<void>((resolve) => {
+    if (!controlsRef.current) {
+      resolve()
+      return
+    }
+
+    const timeline = gsap.timeline({ onComplete: resolve })
+    timeline.to(camera.position, {
+      duration: 1.4,
+      ease: 'power2.inOut',
+      x: -6,
+      y: 4,
+      z: 0,
+      onUpdate: () => controlsRef.current?.update(),
+    }, 0)
+    timeline.to(controlsRef.current.target, {
+      duration: 1.4,
+      ease: 'power2.inOut',
+      x: 21,
+      y: 2.8,
+      z: 0,
+      onUpdate: () => controlsRef.current?.update(),
+    }, 0)
+  })
+
+  const walkToPanel = (target: { x: number; y: number; z: number; camZ: number }) => new Promise<void>((resolve) => {
+    if (!controlsRef.current) {
+      resolve()
+      return
+    }
+
+    const timeline = gsap.timeline({ onComplete: resolve })
+    timeline.to(camera.position, {
+      duration: 1.8,
+      ease: 'power2.inOut',
+      x: target.x,
+      y: target.y,
+      z: target.camZ,
+      onUpdate: () => controlsRef.current?.update(),
+    }, 0)
+    timeline.to(controlsRef.current.target, {
+      duration: 1.8,
+      ease: 'power2.inOut',
+      x: target.x,
+      y: target.y,
+      z: target.z,
+      onUpdate: () => controlsRef.current?.update(),
+    }, 0)
+  })
+
+  useEffect(() => {
+    setPathArrows([])
+
+    if (activePanelIds.length === 0) return
+
+    if (activePanelIds.length > 1) {
+      const timer = window.setTimeout(() => {
+        onSequenceDone?.()
+      }, 5000)
+      return () => window.clearTimeout(timer)
+    }
+
+    const placement = placements.find((item) => item.panelId === activePanelIds[0])
+    if (!placement) return
+
+    let cancelled = false
+    const [x, y, z] = placement.position
+    const panelTarget = {
+      x,
+      y: y + (placement.doubleHeight ? 2.8 : 1.5),
+      z,
+      camZ: z + (z > 0 ? 8 : -8),
+    }
+
+    const run = async () => {
+      await wait(350)
+      if (cancelled) return
+
+      const arrows = computeArrows(camera.position.clone(), [x, 0, z])
+      for (let index = 0; index < 3; index += 1) {
+        if (cancelled) return
+        setPathArrows(arrows)
+        await wait(260)
+        setPathArrows([])
+        await wait(180)
+      }
+
+      if (cancelled) return
+      setPathArrows(arrows)
+      await wait(250)
+      if (cancelled) return
+
+      await walkToPanel(panelTarget)
+      if (cancelled) return
+      setPathArrows([])
+      await wait(650)
+      if (cancelled) return
+
+      await goHome()
+      if (cancelled) return
+      await wait(900)
+      if (cancelled) return
+
+      onSequenceDone?.()
+    }
+
+    run()
+
+    return () => {
+      cancelled = true
+      setPathArrows([])
+      gsap.killTweensOf(camera.position)
+      if (controlsRef.current?.target) {
+        gsap.killTweensOf(controlsRef.current.target)
+        controlsRef.current.update()
+      }
+    }
+  }, [activePanelIds.join(','), camera, onSequenceDone, placements])
+
+  return (
+    <>
+      <OrbitControls ref={controlsRef} target={defaultTarget} enablePan={false} minDistance={4} maxDistance={70} />
+      {pathArrows.map((arrow, index) => <PathArrow key={`${arrow.position.join('-')}-${index}`} {...arrow} index={index} />)}
+    </>
+  )
+}
+
+export function ThreePanelViewer({ activePanelIds = [], onSequenceDone }: { activePanelIds?: number[]; onSequenceDone?: () => void }) {
   return (
     <Canvas
       shadows
@@ -332,7 +546,7 @@ export function ThreePanelViewer({ activePanelIds = [] }: { activePanelIds?: num
         }
       >
         <color attach="background" args={['#0a0a0a']} />
-        <OrbitControls target={[21, 2.8, 0]} enablePan={false} minDistance={10} maxDistance={70} />
+        <CameraController activePanelIds={activePanelIds} onSequenceDone={onSequenceDone} />
         <PanelGrid activePanelIds={activePanelIds} />
         <Room />
       </Suspense>

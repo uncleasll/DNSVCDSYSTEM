@@ -12,10 +12,12 @@ type Props = {
   onConfirm?: (operationId: number, operator: string, department: string) => void
 }
 
+const isProgress = (status: string) => status === '진행중' || status === 'м§„н–‰м¤‘'
+
 export function OperationModal({ mode, operations = [], onClose, onConfirm }: Props) {
   const isStart = mode === 'start'
   const list = useMemo(() => {
-    const progress = operations.filter((operation) => operation.status === '진행중')
+    const progress = operations.filter((operation) => isProgress(operation.status))
     if (progress.length > 0) return progress
 
     return MOCK_KEY_STATUS.slice(0, isStart ? 7 : 5).map((item, index) => ({
@@ -32,11 +34,15 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
       operatedAt: item.timestamp,
     } satisfies Operation))
   }, [isStart, operations])
-  const [selected, setSelected] = useState(list[0]?.id ?? 0)
+  const [selectedIds, setSelectedIds] = useState<number[]>(isStart ? list.slice(0, 2).map((item) => item.id) : [list[0]?.id ?? 0].filter(Boolean))
   const [team, setTeam] = useState(MOCK_TEAMS[0])
   const [supervisor, setSupervisor] = useState(MOCK_WORKERS[0])
   const [worker, setWorker] = useState(MOCK_WORKERS[1] ?? MOCK_WORKERS[0])
-  const active = list.find((item) => item.id === selected) ?? list[0]
+  const active = list.find((item) => selectedIds.includes(item.id)) ?? list[0]
+  const selectedItems = list.filter((item) => selectedIds.includes(item.id))
+  const toggleSelected = (id: number) => {
+    setSelectedIds((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id])
+  }
 
   return (
     <ModalShell onClose={onClose} className="max-w-5xl">
@@ -55,12 +61,12 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
         <section className="min-h-0">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-bold">{isStart ? '조작 내역' : '진행중 목록'}</h3>
-            <span className="text-sm font-bold text-blue-600">{list.length} items</span>
+            <span className="text-sm font-bold text-blue-600">{selectedItems.length}/{list.length} 선택</span>
           </div>
           <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
             {list.map((item) => (
-              <button key={item.id} type="button" onClick={() => setSelected(item.id)} className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left shadow-sm ${selected === item.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white'}`}>
-                <span className={`h-5 w-5 rounded-full border ${selected === item.id ? 'border-4 border-blue-600' : 'border-slate-300'}`} />
+              <button key={item.id} type="button" onClick={() => toggleSelected(item.id)} className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left shadow-sm ${selectedIds.includes(item.id) ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                <input type="checkbox" checked={selectedIds.includes(item.id)} onChange={() => toggleSelected(item.id)} onClick={(event) => event.stopPropagation()} className="h-5 w-5 rounded border-slate-300 text-blue-600" />
                 <div className="min-w-0 flex-1">
                   <div className="font-black">{item.unitId}</div>
                   <div className="text-xs font-semibold text-slate-500">{item.equipName}</div>
@@ -82,12 +88,12 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
             <Info icon={Users} label="팀" value={team} />
             <Info icon={User} label="책임자" value={supervisor} />
             <Info icon={Wrench} label="작업자" value={worker} />
-            <Info icon={Check} label={isStart ? '조작대상' : '대상'} value={active?.unitId ?? '-'} sub={active?.equipName} />
+            <Info icon={Check} label={isStart ? '조작대상' : '대상'} value={selectedItems.length > 1 ? `${selectedItems.length}개 선택` : active?.unitId ?? '-'} sub={selectedItems.map((item) => item.unitId).join(', ') || active?.equipName} />
           </div>
         </section>
       </div>
       <div className="flex shrink-0 justify-end border-t border-slate-200 p-5">
-        <button type="button" onClick={() => { if (active) onConfirm?.(active.id, worker, team); onClose() }} className="flex h-14 w-64 items-center justify-center gap-3 rounded-lg bg-blue-600 text-lg font-bold text-white shadow-lg hover:bg-blue-700">
+        <button type="button" disabled={selectedItems.length === 0} onClick={() => { selectedItems.forEach((item) => onConfirm?.(item.id, worker, team)); onClose() }} className="flex h-14 w-64 items-center justify-center gap-3 rounded-lg bg-blue-600 text-lg font-bold text-white shadow-lg hover:bg-blue-700 disabled:bg-slate-300">
           {isStart ? <Play className="h-6 w-6" /> : <Check className="h-6 w-6" />}
           {isStart ? '작업 시작' : '완료 처리'}
         </button>

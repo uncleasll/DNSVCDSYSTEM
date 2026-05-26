@@ -37,16 +37,10 @@ export function Header({ onRegister, title = '영동 1호기 고압차단기 위
         <div className="flex items-center gap-2 text-sm font-bold text-slate-800"><Clock className="h-4 w-4 text-blue-600" />{time}</div>
         <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-slate-500"><Calendar className="h-3.5 w-3.5 text-blue-600" />2026.05.19</div>
       </div>
-      {alarmCount === undefined && (
-        <div className="flex flex-col justify-center rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
-          <div className="flex items-center justify-between gap-2 text-[11px] font-bold"><span className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-blue-600" />GEN 연동</span><span className="text-emerald-600">ON</span></div>
-          <div className="flex items-center justify-between gap-2 text-[11px] font-bold"><span className="flex items-center gap-1.5"><Bell className="h-3.5 w-3.5 text-blue-600" />기본전환 연동</span><span className="text-emerald-600">ON</span></div>
-        </div>
-      )}
-      {alarmCount !== undefined && <div className="flex flex-col justify-center gap-1 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
+      <div className="flex flex-col justify-center gap-1 rounded-lg border border-slate-200 bg-white px-4 shadow-sm">
         <div className="flex items-center justify-between gap-2 text-[11px] font-bold"><span className="flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-blue-600" />GEN 연동</span><span className="text-emerald-600">ON</span></div>
         <div className="flex items-center justify-between gap-2 text-[11px] font-bold"><span className="flex items-center gap-1.5"><Bell className="h-3.5 w-3.5 text-blue-600" />기본전환 연동</span><span className="text-emerald-600">ON</span></div>
-      </div>}
+      </div>
       {onRegister && (
         <button type="button" onClick={onRegister} className="h-full min-w-36 rounded-lg bg-blue-600 px-8 text-sm font-black text-white shadow-sm transition hover:bg-blue-700">
           REGISTER
