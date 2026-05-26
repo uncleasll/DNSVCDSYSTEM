@@ -30,6 +30,7 @@ export function RegisterModal({ onClose, onSubmit }: Props) {
   const [scanOpen, setScanOpen] = useState(false)
   const [cameraReady, setCameraReady] = useState(false)
   const [detailUnitId, setDetailUnitId] = useState<string | null>(null)
+  const searchRef = useRef<HTMLInputElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const matches = useMemo(() => {
@@ -117,13 +118,13 @@ export function RegisterModal({ onClose, onSubmit }: Props) {
             <button type="button" onClick={() => setScanOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-lg border border-blue-500 font-semibold text-blue-600">
               <QrCode className="h-5 w-5" />QR 스캔
             </button>
-            <button type="button" className="flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-400 font-semibold text-slate-700">
+            <button type="button" onClick={() => searchRef.current?.focus()} className="flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-400 font-semibold text-slate-700">
               <Search className="h-5 w-5" />검색
             </button>
           </div>
           <div className="relative mt-3">
             <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Unit ID or equipment name..." className="h-12 w-full rounded-lg border border-slate-400 pl-12 pr-4 outline-none focus:border-blue-500" />
+            <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Unit ID or equipment name..." className="h-12 w-full rounded-lg border border-slate-400 pl-12 pr-4 outline-none focus:border-blue-500" />
           </div>
           <div className="mt-3 max-h-52 overflow-y-auto rounded-lg border border-slate-200">
             <table className="w-full text-left text-xs">

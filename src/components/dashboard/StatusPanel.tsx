@@ -8,7 +8,7 @@ type Props = {
 export function StatusPanel({ operations = [] }: Props) {
   const liveItems = operations.map((operation) => ({
     unitId: operation.unitId,
-    status: operation.opType.replace(' ', '_') as 'KEY_ALERT',
+    status: operation.opType.replaceAll(' ', '_'),
   }))
   const defaultItems = [
     { unitId: 'UNIT-12B', status: 'KEY_CLOSED' as const },

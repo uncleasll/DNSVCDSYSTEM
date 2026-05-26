@@ -4,9 +4,10 @@ import { StatusBadge } from '../ui/StatusBadge'
 
 type Props = {
   operations?: Operation[]
+  onViewAll?: () => void
 }
 
-export function RecentActivity({ operations = [] }: Props) {
+export function RecentActivity({ operations = [], onViewAll }: Props) {
   const items = operations.length > 0
     ? operations.slice(0, 4).map((operation) => ({
       unitId: operation.unitId,
@@ -19,7 +20,7 @@ export function RecentActivity({ operations = [] }: Props) {
     <section className="min-h-0 overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-semibold">RECENT ACTIVITY</h2>
-        <button type="button" className="text-xs font-semibold text-blue-600">view all -&gt;</button>
+        <button type="button" onClick={onViewAll} className="text-xs font-semibold text-blue-600 hover:underline">view all -&gt;</button>
       </div>
       <div className="max-h-[138px] space-y-1.5 overflow-y-auto pr-1">
         {items.map((item) => (

@@ -14,7 +14,7 @@ import { INITIAL_OPERATIONS, nowStamp } from '../data/operations'
 import { getPanelByUnitId } from '../data/panels'
 import type { Operation } from '../types'
 
-type Modal = 'register' | 'success' | 'start' | 'complete' | 'history' | null
+type Modal = 'register' | 'success' | 'start' | 'complete' | 'history' | 'activity' | null
 
 const isProgress = (status: string) => status === '진행중' || status === 'м§„н–‰м¤‘'
 
@@ -78,7 +78,7 @@ export function Dashboard() {
                 </div>
               </div>
             </section>
-            <RecentActivity operations={operations} />
+            <RecentActivity operations={operations} onViewAll={() => setModal('activity')} />
           </div>
         </main>
         <aside className="grid min-h-0 grid-rows-[minmax(120px,1fr)_52px_52px_52px_52px] gap-2 overflow-hidden">
@@ -94,6 +94,7 @@ export function Dashboard() {
       {modal === 'start' && <OperationModal mode="start" operations={operations} onClose={() => setModal(null)} onConfirm={(id, operator, department) => updateOperation(id, operator, department)} />}
       {modal === 'complete' && <OperationModal mode="complete" operations={operations} onClose={() => setModal(null)} onConfirm={(id, operator, department) => updateOperation(id, operator, department, true)} />}
       {modal === 'history' && <HistoryModal onClose={() => setModal(null)} />}
+      {modal === 'activity' && <HistoryModal onClose={() => setModal(null)} />}
     </>
   )
 }

@@ -9,11 +9,15 @@ type Props = {
 
 export function UnitList({ selectedUnitIds = [], onToggleUnit }: Props) {
   const [query, setQuery] = useState('')
+  const [showAll, setShowAll] = useState(false)
   const units = useMemo(() => {
     const term = query.trim().toLowerCase()
-    if (!term) return MOCK_UNITS
-    return MOCK_UNITS.filter((unit) => `${unit.id} ${unit.unitId} ${unit.name}`.toLowerCase().includes(term))
-  }, [query])
+    const filtered = term
+      ? MOCK_UNITS.filter((unit) => `${unit.id} ${unit.unitId} ${unit.name}`.toLowerCase().includes(term))
+      : MOCK_UNITS
+
+    return showAll || term ? filtered : filtered.slice(0, 24)
+  }, [query, showAll])
 
   return (
     <section className="flex h-[calc(100vh-104px)] min-h-0 flex-col rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
@@ -38,7 +42,9 @@ export function UnitList({ selectedUnitIds = [], onToggleUnit }: Props) {
           )
         })}
       </div>
-      <button type="button" className="mt-3 h-9 rounded-lg border border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-50">view all units</button>
+      <button type="button" onClick={() => setShowAll((value) => !value)} className="mt-3 h-9 rounded-lg border border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-50">
+        {showAll ? 'show less' : 'view all units'}
+      </button>
     </section>
   )
 }
