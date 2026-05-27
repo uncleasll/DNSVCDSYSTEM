@@ -22,9 +22,9 @@ export function RecentActivity({ operations = [], onViewAll }: Props) {
         <h2 className="text-sm font-semibold">RECENT ACTIVITY</h2>
         <button type="button" onClick={onViewAll} className="text-xs font-semibold text-blue-600 hover:underline">view all -&gt;</button>
       </div>
-      <div className="max-h-[138px] space-y-1.5 overflow-y-auto pr-1">
+      <div className="max-h-[188px] space-y-1.5 overflow-y-auto pr-1">
         {items.map((item) => (
-          <div key={`${item.unitId}-${item.timestamp}`} className="grid grid-cols-[62px_minmax(64px,1fr)_96px] items-center gap-2 text-[12px]">
+          <div key={`${item.unitId}-${item.timestamp}`} className="grid grid-cols-[68px_minmax(76px,1fr)_104px] items-center gap-2 text-[12px]">
             <span className="text-slate-500">{item.timestamp.includes('T') ? item.timestamp.slice(11, 19) : item.timestamp.slice(11)}</span>
             <span className="font-semibold">{item.unitId}</span>
             <StatusBadge status={item.status} blink={item.status === 'KEY_ALERT'} />

@@ -106,11 +106,11 @@ export function Dashboard() {
   return (
     <>
       <Header />
-      <div className="grid h-[calc(100vh-104px)] min-h-0 grid-cols-[430px_minmax(560px,1fr)_168px] gap-3 overflow-hidden">
+      <div className="grid h-[calc(100vh-104px)] min-h-0 grid-cols-[360px_minmax(520px,1fr)_200px] gap-3 overflow-hidden">
         <FloorPlan cameraPos={cameraPos} targetPanelIds={viewerPanelIds} activePanels={activePanels} />
         <main className="grid min-h-0 grid-rows-[minmax(180px,1fr)_238px] gap-3">
           {activePanels.length > 0 && (
-            <div className="pointer-events-none absolute left-[450px] right-[190px] top-[118px] z-20 flex flex-col gap-1">
+            <div className="pointer-events-none absolute left-[380px] right-[220px] top-[118px] z-20 flex flex-col gap-1">
               {activePanels.map((panel) => (
                 <div key={panel.id} className="flex max-w-xl items-center gap-2 rounded-md border border-red-800/60 bg-red-950/90 px-2.5 py-1 text-[11px] font-bold text-red-200 shadow-lg">
                   <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_0_4px_rgba(239,68,68,0.25)]" />
@@ -127,27 +127,27 @@ export function Dashboard() {
             onCameraUpdate={setCameraPos}
             onSequenceDone={handleSequenceDone}
           />
-          <div className="grid min-h-0 grid-cols-[260px_minmax(360px,1fr)] gap-3">
+          <div className="grid min-h-0 grid-cols-[240px_minmax(0,1fr)] gap-3">
             <section className="min-h-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
                 <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-600">통신정보</h2>
               </div>
-              <div className="grid gap-2 p-3">
+              <div className="grid gap-1.5 p-2.5">
                 {[
                   { icon: Radio, label: 'GENi 연동', value: 'ON', color: 'text-emerald-600', bg: 'bg-emerald-50' },
                   { icon: ShieldCheck, label: '키보관함 연동', value: 'ON', color: 'text-blue-600', bg: 'bg-blue-50' },
                   { icon: Bell, label: '알람', value: alertCount > 0 ? `${alertCount}건` : '없음', color: alertCount > 0 ? 'text-red-600' : 'text-emerald-600', bg: alertCount > 0 ? 'bg-red-50' : 'bg-emerald-50' },
                   { icon: Server, label: '패널', value: '47', color: 'text-blue-600', bg: 'bg-blue-50' },
                 ].map(({ icon: Icon, label, value, color, bg }) => (
-                  <div key={label} className="flex items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${bg} ${color}`}><Icon className="h-4 w-4" /></div>
-                    <span className="text-xs font-bold text-slate-600">{label}</span>
+                  <div key={label} className="flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 px-2.5 py-1.5">
+                    <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${bg} ${color}`}><Icon className="h-3.5 w-3.5" /></div>
+                    <span className="min-w-0 truncate text-[11px] font-bold text-slate-600">{label}</span>
                     <span className={`ml-auto text-xs font-black ${color}`}>{value}</span>
                   </div>
                 ))}
               </div>
             </section>
-            <div className="grid min-h-0 grid-cols-2 gap-3">
+            <div className="grid min-h-0 grid-cols-[minmax(220px,0.9fr)_minmax(260px,1.1fr)] gap-3">
               <section className="min-h-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
                   <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-600">시스템 상태</h2>
