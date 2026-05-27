@@ -48,15 +48,20 @@ function buildCabinets(): PanelCabinet[] {
 const cabinets = buildCabinets()
 
 export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }: Props) {
-  const width = 2200
-  const height = 3600
-  const normalScale = 132
+  // ─── SVG ENI VA BO'YI ORALARI SIG'ISHI UCHUN KATTALASHTIRILDI ───
+  const width = 2800
+  const height = 4800
+  
+  // Panellarning vertikal (Y) o'qi bo'yicha oralarini ochish (Eski: 132)
+  const normalScale = 180 
 
-  const mapX2D = (z: number) => 1100 + z * 126
+  // Panellarning gorizontal (X) o'qi bo'yicha oralarini ochish (Eski: 126)
+  const mapX2D = (z: number) => 1400 + z * 160 
+  
   const mapY2D = (x: number) => {
     if (x >= 11) return 10 + (35 - x) * normalScale
     const yAt11 = 10 + (35 - 11) * normalScale
-    return yAt11 + (11 - x) * 20
+    return yAt11 + (11 - x) * 25 // Bu yer ham muvozanat uchun oshirildi
   }
 
   return (
@@ -91,8 +96,8 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
             const isSelectedUpper = targetPanelIds.includes(cabinet.upperId)
             const isSelectedLower = targetPanelIds.includes(cabinet.lowerId)
             const isSelected = isSelectedUpper || isSelectedLower
-            const panelWidth = 620
-            const panelHeight = 288
+            const panelWidth = 720
+            const panelHeight = 320
             const xPos = mapX2D(cabinet.position[2]) - panelWidth / 2
             const yPos = mapY2D(cabinet.position[0]) - panelHeight / 2
             const upper = PANEL_DATA.find((panel) => panel.id === cabinet.upperId)
