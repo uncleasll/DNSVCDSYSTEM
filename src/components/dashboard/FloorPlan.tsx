@@ -91,8 +91,8 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
             const isSelectedUpper = targetPanelIds.includes(cabinet.upperId)
             const isSelectedLower = targetPanelIds.includes(cabinet.lowerId)
             const isSelected = isSelectedUpper || isSelectedLower
-            const panelWidth = 520
-            const panelHeight = 270
+            const panelWidth = 620
+            const panelHeight = 288
             const xPos = mapX2D(cabinet.position[2]) - panelWidth / 2
             const yPos = mapY2D(cabinet.position[0]) - panelHeight / 2
             const upper = PANEL_DATA.find((panel) => panel.id === cabinet.upperId)
@@ -125,34 +125,34 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
                   rx="6"
                 />
                 <clipPath id={`clip-${cabinet.id}-upper`}>
-                  <rect x={xPos + 14} y={yPos + 22} width={panelWidth - 28} height="108" rx="4" />
+                  <rect x={xPos + 16} y={yPos + 20} width={panelWidth - 32} height="118" rx="5" />
                 </clipPath>
                 <clipPath id={`clip-${cabinet.id}-lower`}>
-                  <rect x={xPos + 14} y={yPos + 134} width={panelWidth - 28} height="112" rx="4" />
+                  <rect x={xPos + 16} y={yPos + 142} width={panelWidth - 32} height="120" rx="5" />
                 </clipPath>
                 <rect x={xPos + 2} y={yPos + 2} width={panelWidth - 4} height={panelHeight * 0.15} fill="rgba(37,99,235,0.08)" rx="4" />
                 <g clipPath={`url(#clip-${cabinet.id}-upper)`}>
-                  <text x={xPos + 18} y={yPos + 58} fontSize="58" fill={isSelectedUpper ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
+                  <text x={xPos + 20} y={yPos + 62} fontSize="76" fontWeight="800" fill={isSelectedUpper ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
                     {String(cabinet.upperId).padStart(2, '0')}
                   </text>
-                  <text x={xPos + 118} y={yPos + 58} fontSize="54" fill={isSelectedUpper ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
+                  <text x={xPos + 146} y={yPos + 62} fontSize="70" fontWeight="800" fill={isSelectedUpper ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
                     {upper?.unitId ?? ''}
                   </text>
-                  <text x={xPos + 18} y={yPos + 114} fontSize="40" fill={isSelectedUpper ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
-                    {(upper?.name ?? '').slice(0, 24)}
+                  <text x={xPos + 20} y={yPos + 124} fontSize="46" fontWeight="700" fill={isSelectedUpper ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
+                    {(upper?.name ?? '').slice(0, 25)}
                   </text>
                 </g>
 
                 {cabinet.upperId !== cabinet.lowerId && (
                   <g clipPath={`url(#clip-${cabinet.id}-lower)`}>
-                    <text x={xPos + 18} y={yPos + 172} fontSize="58" fill={isSelectedLower ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
+                    <text x={xPos + 20} y={yPos + 186} fontSize="76" fontWeight="800" fill={isSelectedLower ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
                       {String(cabinet.lowerId).padStart(2, '0')}
                     </text>
-                    <text x={xPos + 118} y={yPos + 172} fontSize="54" fill={isSelectedLower ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
+                    <text x={xPos + 146} y={yPos + 186} fontSize="70" fontWeight="800" fill={isSelectedLower ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
                       {lower?.unitId ?? ''}
                     </text>
-                    <text x={xPos + 18} y={yPos + 228} fontSize="40" fill={isSelectedLower ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
-                      {(lower?.name ?? '').slice(0, 24)}
+                    <text x={xPos + 20} y={yPos + 248} fontSize="46" fontWeight="700" fill={isSelectedLower ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
+                      {(lower?.name ?? '').slice(0, 25)}
                     </text>
                   </g>
                 )}

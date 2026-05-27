@@ -106,9 +106,9 @@ export function Dashboard() {
   return (
     <>
       <Header />
-      <div className="grid h-[calc(100vh-104px)] min-h-0 grid-cols-[360px_minmax(520px,1fr)_200px] gap-3 overflow-hidden">
+      <div className="grid h-[calc(100vh-104px)] min-h-0 grid-cols-[minmax(320px,360px)_minmax(0,1fr)_200px] gap-3 overflow-hidden">
         <FloorPlan cameraPos={cameraPos} targetPanelIds={viewerPanelIds} activePanels={activePanels} />
-        <main className="grid min-h-0 grid-rows-[minmax(180px,1fr)_238px] gap-3">
+        <main className="grid min-h-0 min-w-0 grid-rows-[minmax(180px,1fr)_238px] gap-3">
           {activePanels.length > 0 && (
             <div className="pointer-events-none absolute left-[380px] right-[220px] top-[118px] z-20 flex flex-col gap-1">
               {activePanels.map((panel) => (
@@ -127,7 +127,7 @@ export function Dashboard() {
             onCameraUpdate={setCameraPos}
             onSequenceDone={handleSequenceDone}
           />
-          <div className="grid min-h-0 grid-cols-[240px_minmax(0,1fr)] gap-3">
+          <div className="grid min-h-0 min-w-0 grid-cols-[230px_minmax(0,1fr)] gap-3">
             <section className="min-h-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
               <div className="border-b border-slate-200 bg-slate-50 px-3 py-2">
                 <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-600">통신정보</h2>
@@ -147,7 +147,7 @@ export function Dashboard() {
                 ))}
               </div>
             </section>
-            <div className="grid min-h-0 grid-cols-[minmax(220px,0.9fr)_minmax(260px,1.1fr)] gap-3">
+            <div className="grid min-h-0 min-w-0 grid-cols-[minmax(190px,0.85fr)_minmax(220px,1.15fr)] gap-3">
               <section className="min-h-0 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2">
                   <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-600">시스템 상태</h2>
@@ -175,7 +175,7 @@ export function Dashboard() {
             </div>
           </div>
         </main>
-        <aside className="grid min-h-0 grid-rows-[minmax(120px,1fr)_52px_52px_52px_52px] gap-2 overflow-hidden">
+        <aside className="grid min-h-0 min-w-0 grid-rows-[minmax(120px,1fr)_52px_52px_52px_52px] gap-2 overflow-hidden">
           <StatusPanel operations={activeOperations} />
           <ActionButton icon={PlusCircle} label="REGISTER" variant="blue" onClick={() => setModal('register')} />
           <ActionButton icon={Play} label="START" variant="dark" onClick={() => setModal('start')} />
