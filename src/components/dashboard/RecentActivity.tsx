@@ -9,7 +9,7 @@ type Props = {
 
 export function RecentActivity({ operations = [], onViewAll }: Props) {
   const items = operations.length > 0
-    ? operations.slice(0, 4).map((operation) => ({
+    ? [...operations].sort((a, b) => b.operatedAt.localeCompare(a.operatedAt)).slice(0, 4).map((operation) => ({
       unitId: operation.unitId,
       timestamp: operation.operatedAt,
       status: operation.opType.replace(' ', '_') as 'KEY_ALERT',
@@ -25,7 +25,7 @@ export function RecentActivity({ operations = [], onViewAll }: Props) {
       <div className="max-h-[138px] space-y-1.5 overflow-y-auto pr-1">
         {items.map((item) => (
           <div key={`${item.unitId}-${item.timestamp}`} className="grid grid-cols-[62px_minmax(64px,1fr)_96px] items-center gap-2 text-[12px]">
-            <span className="text-slate-500">{item.timestamp.slice(11)}</span>
+            <span className="text-slate-500">{item.timestamp.includes('T') ? item.timestamp.slice(11, 19) : item.timestamp.slice(11)}</span>
             <span className="font-semibold">{item.unitId}</span>
             <StatusBadge status={item.status} blink={item.status === 'KEY_ALERT'} />
           </div>

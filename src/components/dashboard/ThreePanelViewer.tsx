@@ -164,7 +164,7 @@ const GLBClone = memo(function GLBClone({
 
   useFrame(({ clock }) => {
     if (!overlayRef.current) return
-    overlayRef.current.opacity = isActive && Math.floor(clock.elapsedTime * 6) % 2 === 0 ? 0.55 : 0
+    overlayRef.current.opacity = isActive ? 0.22 + 0.18 * Math.sin(clock.elapsedTime * 5) : 0
   })
 
   const { finalScale, modelOffset, height, depth } = useMemo(() => {
@@ -190,7 +190,11 @@ const GLBClone = memo(function GLBClone({
       <primitive object={cloned} scale={finalScale} position={modelOffset} />
       <mesh position={[0, height / 2, depth / 2 + 0.006]}>
         <planeGeometry args={[2, height]} />
-        <meshBasicMaterial ref={overlayRef} color="#dc2626" transparent opacity={0} depthWrite={false} />
+        <meshBasicMaterial ref={overlayRef} color="#ef4444" transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
+      </mesh>
+      <mesh position={[0, height / 2, depth / 2 + 0.01]}>
+        <planeGeometry args={[2.05, height + 0.05]} />
+        <meshBasicMaterial color="#ef4444" transparent opacity={isActive ? 0.18 : 0} depthWrite={false} side={THREE.DoubleSide} />
       </mesh>
       <mesh position={[0, height * 0.83, depth / 2 + 0.004]}>
         <planeGeometry args={[1.4, height * 0.22]} />
@@ -579,27 +583,74 @@ function CameraController({
       return () => window.clearTimeout(timer)
     }
 
-    const placement = placements.find((item) => item.panelId === activePanelIds[0])
-    if (!placement) return
-
     let cancelled = false
     sequenceRunning.current = true
-    const [x, y, z] = placement.position
-    const panelTarget = {
-      x,
-      y: y + (placement.doubleHeight ? 2.8 : 1.5),
-      z,
-      camZ: z > 0 ? z - 8 : z + 8,
-    }
 
     const run = async () => {
       setBlinkingIds(activePanelIds)
+
+      let closestPanelId = activePanelIds[0]
+      let minDistance = Infinity
+      const startX = 11
+      const colWidth = 2
+      const floorHeight = 2.5
+      const rowZ: [number, number] = [-4.9, 4.9]
+
+      for (const panelId of activePanelIds) {
+        let row: number
+        let col: number
+
+        if (panelId <= 24) {
+          row = 1
+          col = Math.floor((panelId - 1) / 2)
+        } else if (panelId === 47) {
+          row = 0
+          col = 0
+        } else {
+          row = 0
+          const startId = panelId % 2 === 1 ? panelId : panelId - 1
+          col = (47 - startId) / 2
+        }
+
+        const exactX = startX + col * colWidth
+        const exactZ = rowZ[row]
+        const distance = Math.hypot(camera.position.x - exactX, camera.position.z - exactZ)
+        if (distance < minDistance) {
+          minDistance = distance
+          closestPanelId = panelId
+        }
+      }
+
+      const panelId = closestPanelId
+      let row: number
+      let col: number
+      let floor: number
+
+      if (panelId <= 24) {
+        row = 1
+        col = Math.floor((panelId - 1) / 2)
+        floor = panelId % 2 === 1 ? 1 : 0
+      } else if (panelId === 47) {
+        row = 0
+        col = 0
+        floor = 1
+      } else {
+        row = 0
+        const startId = panelId % 2 === 1 ? panelId : panelId - 1
+        col = (47 - startId) / 2
+        floor = panelId % 2 === 1 ? 1 : 0
+      }
+
+      const exactX = startX + col * colWidth
+      const exactY = floor * floorHeight + (panelId === 47 ? floorHeight : floorHeight / 2)
+      const exactZ = rowZ[row]
+      const camZ = row === 0 ? exactZ + 8 : exactZ - 8
 
       for (let cycle = 0; cycle < 2; cycle += 1) {
         await wait(1000)
         if (cancelled) return
 
-        const arrows = computeArrows(camera.position.clone(), [x, 0, z])
+        const arrows = computeArrows(camera.position.clone(), [exactX, 0, rowZ[row]])
         for (let index = 0; index < 3; index += 1) {
           if (cancelled) return
           setPathArrows(arrows)
@@ -612,7 +663,7 @@ function CameraController({
         setPathArrows(arrows)
         await wait(300)
 
-        await walkToPanel(panelTarget)
+        await walkToPanel({ x: exactX, y: exactY, z: exactZ, camZ })
         if (cancelled) return
         setPathArrows([])
 
@@ -653,7 +704,7 @@ function CameraController({
         maxPolarAngle={Math.PI}
         enablePan={false}
         enableRotate={false}
-        enableZoom={isOperationActive}
+        enableZoom={false}
         minDistance={4}
         maxDistance={70}
       />
