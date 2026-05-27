@@ -468,7 +468,7 @@ function CameraController({
       duration: 3.5,
       ease: 'power2.inOut',
       x: -6,
-      y: 4,
+      y: 3.6,
       z: 0,
       onUpdate: () => controlsRef.current?.update(),
     }, 0)
@@ -739,7 +739,7 @@ export function ThreePanelViewer({
     <Canvas
       shadows
       dpr={[1, 1.5]}
-      camera={{ position: [-6, 4, 0], fov: 30, near: 0.1, far: 1000 }}
+      camera={{ position: [-6, 3.6, 0], fov: 22, near: 0.1, far: 1000 }}
       className="h-full w-full"
       gl={{ antialias: true }}
     >

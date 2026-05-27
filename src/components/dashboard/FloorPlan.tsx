@@ -48,19 +48,19 @@ function buildCabinets(): PanelCabinet[] {
 const cabinets = buildCabinets()
 
 export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }: Props) {
-  // ─── SVG ENI VA BO'YI ORALARI SIG'ISHI UCHUN KATTALASHTIRILDI ───
-  const width = 2800
-  const height = 4800
+  // Unitlar kattaroq ko'rinishi uchun viewBox va oraliqlar birga oshirildi.
+  const width = 3400
+  const height = 7000
   
-  // Panellarning vertikal (Y) o'qi bo'yicha oralarini ochish (Eski: 132)
-  const normalScale = 180 
+  // Panellarning vertikal (Y) o'qi bo'yicha oralarini ochish.
+  const normalScale = 270 
 
-  // Panellarning gorizontal (X) o'qi bo'yicha oralarini ochish (Eski: 126)
-  const mapX2D = (z: number) => 1400 + z * 160 
+  // Panellarning gorizontal (X) o'qi bo'yicha oralarini ochish.
+  const mapX2D = (z: number) => 1700 + z * 195 
   
   const mapY2D = (x: number) => {
-    if (x >= 11) return 10 + (35 - x) * normalScale
-    const yAt11 = 10 + (35 - 11) * normalScale
+    if (x >= 11) return 260 + (35 - x) * normalScale
+    const yAt11 = 260 + (35 - 11) * normalScale
     return yAt11 + (11 - x) * 25 // Bu yer ham muvozanat uchun oshirildi
   }
 
@@ -96,8 +96,8 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
             const isSelectedUpper = targetPanelIds.includes(cabinet.upperId)
             const isSelectedLower = targetPanelIds.includes(cabinet.lowerId)
             const isSelected = isSelectedUpper || isSelectedLower
-            const panelWidth = 720
-            const panelHeight = 320
+            const panelWidth = 1120
+            const panelHeight = 480
             const xPos = mapX2D(cabinet.position[2]) - panelWidth / 2
             const yPos = mapY2D(cabinet.position[0]) - panelHeight / 2
             const upper = PANEL_DATA.find((panel) => panel.id === cabinet.upperId)
@@ -130,33 +130,33 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
                   rx="6"
                 />
                 <clipPath id={`clip-${cabinet.id}-upper`}>
-                  <rect x={xPos + 16} y={yPos + 20} width={panelWidth - 32} height="118" rx="5" />
+                  <rect x={xPos + 22} y={yPos + 30} width={panelWidth - 44} height="176" rx="5" />
                 </clipPath>
                 <clipPath id={`clip-${cabinet.id}-lower`}>
-                  <rect x={xPos + 16} y={yPos + 142} width={panelWidth - 32} height="120" rx="5" />
+                  <rect x={xPos + 22} y={yPos + 222} width={panelWidth - 44} height="178" rx="5" />
                 </clipPath>
                 <rect x={xPos + 2} y={yPos + 2} width={panelWidth - 4} height={panelHeight * 0.15} fill="rgba(37,99,235,0.08)" rx="4" />
                 <g clipPath={`url(#clip-${cabinet.id}-upper)`}>
-                  <text x={xPos + 20} y={yPos + 62} fontSize="76" fontWeight="800" fill={isSelectedUpper ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
+                  <text x={xPos + 34} y={yPos + 94} fontSize="108" fontWeight="800" fill={isSelectedUpper ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
                     {String(cabinet.upperId).padStart(2, '0')}
                   </text>
-                  <text x={xPos + 146} y={yPos + 62} fontSize="70" fontWeight="800" fill={isSelectedUpper ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
+                  <text x={xPos + 214} y={yPos + 94} fontSize="98" fontWeight="800" fill={isSelectedUpper ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
                     {upper?.unitId ?? ''}
                   </text>
-                  <text x={xPos + 20} y={yPos + 124} fontSize="46" fontWeight="700" fill={isSelectedUpper ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
+                  <text x={xPos + 34} y={yPos + 180} fontSize="68" fontWeight="700" fill={isSelectedUpper ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
                     {(upper?.name ?? '').slice(0, 25)}
                   </text>
                 </g>
 
                 {cabinet.upperId !== cabinet.lowerId && (
                   <g clipPath={`url(#clip-${cabinet.id}-lower)`}>
-                    <text x={xPos + 20} y={yPos + 186} fontSize="76" fontWeight="800" fill={isSelectedLower ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
+                    <text x={xPos + 34} y={yPos + 278} fontSize="108" fontWeight="800" fill={isSelectedLower ? '#1d4ed8' : '#2563eb'} textAnchor="start" alignmentBaseline="middle">
                       {String(cabinet.lowerId).padStart(2, '0')}
                     </text>
-                    <text x={xPos + 146} y={yPos + 186} fontSize="70" fontWeight="800" fill={isSelectedLower ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
+                    <text x={xPos + 214} y={yPos + 278} fontSize="98" fontWeight="800" fill={isSelectedLower ? '#0f172a' : '#1e293b'} textAnchor="start" alignmentBaseline="middle">
                       {lower?.unitId ?? ''}
                     </text>
-                    <text x={xPos + 20} y={yPos + 248} fontSize="46" fontWeight="700" fill={isSelectedLower ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
+                    <text x={xPos + 34} y={yPos + 364} fontSize="68" fontWeight="700" fill={isSelectedLower ? '#1d4ed8' : '#64748b'} textAnchor="start" alignmentBaseline="middle">
                       {(lower?.name ?? '').slice(0, 25)}
                     </text>
                   </g>
@@ -165,10 +165,10 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
             )
           })}
 
-          <g transform={`translate(${mapX2D(cameraPos.z)}, ${mapY2D(cameraPos.x)})`}>
-            <circle r="160" fill="url(#camera-glow)" />
-            <circle r="36" fill="#2563eb" stroke="#fff" strokeWidth="8" className="animate-pulse" />
-            <circle r="14" fill="#fff" opacity="0.9" />
+          <g transform={`translate(${width / 2}, ${height / 2})`}>
+            <circle r="220" fill="url(#camera-glow)" />
+            <circle r="52" fill="#2563eb" stroke="#fff" strokeWidth="10" className="animate-pulse" />
+            <circle r="20" fill="#fff" opacity="0.9" />
           </g>
         </svg>
       </div>

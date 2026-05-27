@@ -35,15 +35,6 @@ export function Sidebar({ collapsed, onToggle }: Props) {
           </NavLink>
         ))}
       </nav>
-      <div className={`mt-auto rounded-xl border border-slate-200 p-4 text-xs ${collapsed ? 'px-2 text-center' : ''}`}>
-        <Gauge className="mb-2 h-6 w-6 text-blue-600" />
-        <div className={collapsed ? 'hidden' : ''}>
-          <div className="font-bold text-slate-900">24/7 SUPPORT</div>
-          <div>Control Center</div>
-          <div>055-123-4567</div>
-        </div>
-      </div>
-      <div className={`mt-8 text-xs text-slate-500 ${collapsed ? 'hidden' : ''}`}>© 2026 KOEN<br />All rights reserved.</div>
-    </aside>
+       </aside>
   )
 }
