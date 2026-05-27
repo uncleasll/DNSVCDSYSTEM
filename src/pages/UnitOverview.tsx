@@ -1,6 +1,5 @@
 import { Bell, Boxes, CheckCircle, ChevronsRight, PlugZap, Zap } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { Pie, PieChart, ResponsiveContainer } from 'recharts'
+import { useState } from 'react'
 import { Header } from '../components/layout/Header'
 import { demoAlarms, unitRows } from '../data/demo'
 import { PANEL_DATA } from '../data/panels'
@@ -12,22 +11,11 @@ const distribution = [
 ]
 
 export function UnitOverview() {
-  const [statusFilter, setStatusFilter] = useState('전체 상태')
-  const [areaFilter, setAreaFilter] = useState('전체 구역')
-  const [typeFilter, setTypeFilter] = useState('전체 타입')
-  const [applied, setApplied] = useState({ status: '전체 상태', area: '전체 구역', type: '전체 타입' })
   const [page, setPage] = useState(1)
   const [showAllAlarms, setShowAllAlarms] = useState(false)
-  const filteredRows = useMemo(() => unitRows.filter((row) => {
-    const matchesStatus = applied.status === '전체 상태' || row.status === applied.status
-    const matchesArea = applied.area === '전체 구역' || row.area === applied.area
-    const matchesType = applied.type === '전체 타입' || row.equipmentName.toUpperCase().includes(applied.type)
-
-    return matchesStatus && matchesArea && matchesType
-  }), [applied])
   const pageSize = 12
-  const maxPage = Math.max(1, Math.ceil(filteredRows.length / pageSize))
-  const rows = filteredRows.slice((page - 1) * pageSize, page * pageSize)
+  const maxPage = Math.max(1, Math.ceil(unitRows.length / pageSize))
+  const rows = unitRows.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <>
@@ -41,37 +29,7 @@ export function UnitOverview() {
           <Stat icon={Zap} label="전력 총합" value="4.16 kV" sub="TOTAL OUTPUT" color="text-sky-500" />
         </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-[230px_minmax(520px,1fr)_280px] gap-4 overflow-hidden">
-          <aside className="space-y-4 overflow-hidden">
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="mb-2 text-center text-sm font-bold">UNIT 분포도</h2>
-              <div className="h-28">
-                <ResponsiveContainer><PieChart><Pie data={distribution} innerRadius={42} outerRadius={58} dataKey="value" stroke="none" /></PieChart></ResponsiveContainer>
-              </div>
-              <div className="space-y-2 text-sm">
-                {distribution.map((item) => (
-                  <div key={item.name} className="grid grid-cols-[16px_1fr_32px_44px] items-center gap-2">
-                    <span className="h-3 w-3 rounded-full" style={{ background: item.fill }} />
-                    <span>{item.name}</span><b>{item.value}</b><span className="text-slate-500">{((item.value / PANEL_DATA.length) * 100).toFixed(1)}%</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-            <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-              <h2 className="mb-3 text-sm font-bold">빠른 필터</h2>
-              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="mb-3 h-9 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-600">
-                <option>전체 상태</option><option>KEY-CLOSED</option><option>KEY-ALERT</option><option>WARNING</option>
-              </select>
-              <select value={areaFilter} onChange={(event) => setAreaFilter(event.target.value)} className="mb-3 h-9 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-600">
-                <option>전체 구역</option>{Array.from(new Set(unitRows.map((row) => row.area))).map((area) => <option key={area}>{area}</option>)}
-              </select>
-              <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className="mb-3 h-9 w-full rounded-lg border border-slate-200 px-3 text-xs text-slate-600">
-                <option>전체 타입</option><option>PAF</option><option>MILL</option><option>TR</option><option>IDF</option>
-              </select>
-              <button type="button" onClick={() => { setApplied({ status: statusFilter, area: areaFilter, type: typeFilter }); setPage(1) }} className="h-10 w-full rounded-lg bg-blue-600 text-sm font-bold text-white">필터 적용</button>
-            </section>
-          </aside>
-
+        <div className="grid min-h-0 flex-1 grid-cols-[minmax(520px,1fr)_280px] gap-4 overflow-hidden">
           <main className="min-h-0 overflow-hidden rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-sm font-black">UNIT 상태 목록</h2>
             <div className="max-h-[calc(100%-76px)] overflow-auto rounded-lg">
@@ -83,7 +41,7 @@ export function UnitOverview() {
             <div className="mt-3 flex items-center gap-2 text-xs">
               {Array.from({ length: Math.min(4, maxPage) }, (_, index) => index + 1).map((item) => <button key={item} type="button" onClick={() => setPage(item)} className={`h-8 w-8 rounded-md border ${item === page ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-200'}`}>{item}</button>)}
               <button type="button" onClick={() => setPage((value) => Math.min(maxPage, value + 1))} className="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200"><ChevronsRight className="h-4 w-4" /></button>
-              <span className="ml-auto text-slate-600">총 {filteredRows.length}개 표시</span>
+              <span className="ml-auto text-slate-600">총 {unitRows.length}개 표시</span>
             </div>
           </main>
 
