@@ -49,8 +49,19 @@ export const MOCK_EQUIPMENT: EquipmentItem[] = [
 ]
 
 // TODO: DB Connection point: GET /api/teams, GET /api/workers.
-export const MOCK_TEAMS = ['전기1팀', '전기2팀', '정비팀', '운전팀', '환경팀']
-export const MOCK_WORKERS = ['박민준', '이영희', '운선팀', '정수현', '신재호', '한기범', '임동욱']
+export const TEAM_DATA: Record<string, { supervisors: string[]; workers: string[] }> = {
+  전기팀: { supervisors: ['김철수', '박민준', '윤서연'], workers: ['정수현', '한기범', '임동욱'] },
+  운전팀: { supervisors: ['이영희', '정현우'], workers: ['최지수', '오세훈', '강민재'] },
+  환경팀: { supervisors: ['최지수', '강하늘'], workers: ['서지훈', '문태오', '권유진'] },
+  정비팀: { supervisors: ['정비팀', '장우진'], workers: ['백도윤', '이하준', '유민석'] },
+  안전팀: { supervisors: ['한소라', '문지아'], workers: ['송재민', '노현준', '임서율'] },
+  계측팀: { supervisors: ['차은우', '배수빈'], workers: ['홍지민', '김도현', '이준서'] },
+  토목팀: { supervisors: ['오지훈', '권나현'], workers: ['신태양', '남궁민', '류하린'] },
+  기계팀: { supervisors: ['하정우', '서민준'], workers: ['전유찬', '양지후', '황서준'] },
+}
+
+export const MOCK_TEAMS = Object.keys(TEAM_DATA)
+export const MOCK_WORKERS = Object.values(TEAM_DATA).flatMap((team) => [...team.supervisors, ...team.workers])
 
 // TODO: DB Connection point: POST /api/operation/register - register new operation.
 // TODO: DB Connection point: POST /api/operation/start - start operation and trigger key box open.

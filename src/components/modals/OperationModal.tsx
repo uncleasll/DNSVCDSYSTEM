@@ -1,6 +1,6 @@
 import { Check, Play, User, Users, Wrench } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { MOCK_KEY_STATUS, MOCK_TEAMS, MOCK_WORKERS } from '../../data/mockData'
+import { MOCK_KEY_STATUS, MOCK_TEAMS, TEAM_DATA } from '../../data/mockData'
 import type { Operation } from '../../types'
 import { StatusBadge } from '../ui/StatusBadge'
 import { ModalShell } from './ModalShell'
@@ -9,7 +9,7 @@ type Props = {
   mode: 'start' | 'complete'
   operations?: Operation[]
   onClose: () => void
-  onConfirm?: (operationId: number, operator: string, department: string) => void
+  onConfirm?: (operations: Operation[], worker: string, team: string) => void | Promise<void>
 }
 
 const isProgress = (status: string) => status === '진행중' || status === 'м§„н–‰м¤‘'
@@ -35,13 +35,25 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
     } satisfies Operation))
   }, [isStart, operations])
   const [selectedIds, setSelectedIds] = useState<number[]>(isStart ? list.slice(0, 2).map((item) => item.id) : [list[0]?.id ?? 0].filter(Boolean))
-  const [team, setTeam] = useState(MOCK_TEAMS[0])
-  const [supervisor, setSupervisor] = useState(MOCK_WORKERS[0])
-  const [worker, setWorker] = useState(MOCK_WORKERS[1] ?? MOCK_WORKERS[0])
+  const [team, setTeamState] = useState(MOCK_TEAMS[0])
+  const teamInfo = TEAM_DATA[team]
+  const [supervisor, setSupervisor] = useState(teamInfo.supervisors[0])
+  const [worker, setWorker] = useState(teamInfo.workers[0])
   const active = list.find((item) => selectedIds.includes(item.id)) ?? list[0]
   const selectedItems = list.filter((item) => selectedIds.includes(item.id))
   const toggleSelected = (id: number) => {
     setSelectedIds((ids) => ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id])
+  }
+
+  const setTeam = (nextTeam: string) => {
+    setTeamState(nextTeam)
+    setSupervisor(TEAM_DATA[nextTeam].supervisors[0])
+    setWorker(TEAM_DATA[nextTeam].workers[0])
+  }
+
+  const confirm = async () => {
+    await onConfirm?.(selectedItems, worker, team)
+    onClose()
   }
 
   return (
@@ -79,8 +91,8 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
         <section className="border-x border-slate-200 px-6">
           <h3 className="mb-5 font-bold">정보 입력</h3>
           <Select label="팀 선택" value={team} onChange={setTeam} options={MOCK_TEAMS} />
-          <Select label="책임자" value={supervisor} onChange={setSupervisor} options={MOCK_WORKERS} />
-          <Select label="작업자" value={worker} onChange={setWorker} options={MOCK_WORKERS} />
+          <Select label="책임자" value={supervisor} onChange={setSupervisor} options={teamInfo.supervisors} />
+          <Select label="작업자" value={worker} onChange={setWorker} options={teamInfo.workers} />
         </section>
         <section>
           <h3 className="mb-5 font-bold">확인 정보</h3>
@@ -93,7 +105,7 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
         </section>
       </div>
       <div className="flex shrink-0 justify-end border-t border-slate-200 p-5">
-        <button type="button" disabled={selectedItems.length === 0} onClick={() => { selectedItems.forEach((item) => onConfirm?.(item.id, worker, team)); onClose() }} className="flex h-14 w-64 items-center justify-center gap-3 rounded-lg bg-blue-600 text-lg font-bold text-white shadow-lg hover:bg-blue-700 disabled:bg-slate-300">
+        <button type="button" disabled={selectedItems.length === 0} onClick={() => { void confirm() }} className="flex h-14 w-64 items-center justify-center gap-3 rounded-lg bg-blue-600 text-lg font-bold text-white shadow-lg hover:bg-blue-700 disabled:bg-slate-300">
           {isStart ? <Play className="h-6 w-6" /> : <Check className="h-6 w-6" />}
           {isStart ? '작업 시작' : '완료 처리'}
         </button>

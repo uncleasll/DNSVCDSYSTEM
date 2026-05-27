@@ -1,7 +1,9 @@
-import { Environment, Html, OrbitControls, Text, useGLTF } from '@react-three/drei'
+import { ContactShadows, Environment, Float, Html, OrbitControls, Text, useGLTF } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Bloom, EffectComposer, ToneMapping, Vignette } from '@react-three/postprocessing'
 import gsap from 'gsap'
 import { Suspense, memo, useEffect, useMemo, useRef, useState } from 'react'
+import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
 import { PANEL_DATA as SHARED_PANEL_DATA } from '../../data/panels'
 
@@ -336,7 +338,16 @@ function Room() {
       <directionalLight position={[10, 15, 0]} intensity={1.8} castShadow />
       <pointLight position={[10, 5.8, 0]} intensity={1.5} color="#e2e8f0" />
       <pointLight position={[30, 5.8, 0]} intensity={1.5} color="#e2e8f0" />
+      <spotLight position={[0, 8, 0]} angle={0.6} penumbra={1} intensity={3} castShadow />
+      <rectAreaLight width={20} height={1} position={[10, 5.8, 0]} rotation={[-Math.PI / 2, 0, 0]} intensity={6} color="#f8fafc" />
+      <rectAreaLight width={20} height={1} position={[30, 5.8, 0]} rotation={[-Math.PI / 2, 0, 0]} intensity={6} color="#f8fafc" />
       <Environment files="/textures/empty_warehouse_01_1k.hdr" background blur={0.8} />
+      <ContactShadows position={[0, 0.01, 0]} opacity={0.7} scale={80} blur={2.5} far={10} resolution={1024} color="#000000" />
+      <EffectComposer>
+        <Bloom luminanceThreshold={1.2} mipmapBlur intensity={0.8} radius={0.3} />
+        <Vignette eskil={false} offset={0.1} darkness={0.8} />
+        <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      </EffectComposer>
       <primitive object={floorModel} scale={floorScale} position={floorPos} receiveShadow />
       <primitive object={ceilingModel} scale={ceilingScale} position={ceilingPos} receiveShadow />
       <mesh position={[10, 3, -5.2]}>
@@ -354,26 +365,66 @@ function Room() {
       <mesh position={[35, 3, 0]} rotation={[0, -Math.PI / 2, 0]}>
         <planeGeometry args={[10.4, 6]} />
         <meshStandardMaterial color="#0f172a" roughness={0.9} metalness={0.1} />
+        <group position={[0, 0.5, 0.05]}>
+          <mesh>
+            <boxGeometry args={[10, 4, 0.2]} />
+            <meshStandardMaterial color="#020617" roughness={0.7} metalness={0.8} />
+          </mesh>
+          <mesh position={[0, 0, 0.11]}>
+            <planeGeometry args={[9.8, 3.8]} />
+            <meshStandardMaterial color="#0f172a" emissive="#0ea5e9" emissiveIntensity={0.3} roughness={0.1} metalness={0.9} />
+          </mesh>
+          <Text position={[0, 0.4, 0.18]} fontSize={2.5} color="#ffffff" anchorX="center" anchorY="middle" fontStyle="italic">
+            KOEN
+            <meshStandardMaterial color="#ffffff" emissive="#38bdf8" emissiveIntensity={1.5} roughness={0.2} metalness={0.8} />
+          </Text>
+          <Text position={[0, -1.1, 0.18]} font="/fonts/Pretendard-Bold.woff" fontSize={0.7} color="#475569" anchorX="center" anchorY="middle">
+            한국남동발전
+          </Text>
+        </group>
       </mesh>
-      <Text position={[35.1, 3.4, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={1.6} color="#ffffff" anchorX="center">
-        KOEN
-      </Text>
       {[-5.1, 0.3, 5.7, 10.5, 15.3, 20.1, 24.9, 30.3].map((x) => (
-        <mesh key={x} position={[x, 5.95, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[1.2, 1]} />
-          <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.8} />
-        </mesh>
+        <group key={x}>
+          <mesh position={[x, 5.95, 0.3]} rotation={[Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[1.2, 0.6]} />
+            <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.8} />
+          </mesh>
+          <mesh position={[x, 5.95, -0.3]} rotation={[Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[1.2, 0.6]} />
+            <meshStandardMaterial color="#f8fafc" emissive="#f8fafc" emissiveIntensity={0.8} />
+          </mesh>
+        </group>
       ))}
     </>
   )
 }
 
-function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: number[]; onSequenceDone?: () => void }) {
+function CameraController({
+  activePanelIds,
+  sequenceId,
+  isOperationActive,
+  onCameraUpdate,
+  onSequenceDone,
+}: {
+  activePanelIds: number[]
+  sequenceId: number
+  isOperationActive: boolean
+  onCameraUpdate?: (position: { x: number; z: number; rotation: number }) => void
+  onSequenceDone?: () => void
+}) {
   const { camera } = useThree()
   const controlsRef = useRef<any>(null)
   const placements = useMemo(getPlacements, [])
-  const defaultTarget = useMemo(() => new THREE.Vector3(21, 2.8, 0), [])
+  const defaultTarget = useMemo(() => new THREE.Vector3(40, 2.8, 0), [])
+  const activePanelKey = activePanelIds.join(',')
   const [pathArrows, setPathArrows] = useState<Arrow[]>([])
+  const [blinkingIds, setBlinkingIds] = useState<number[]>([])
+  const [moving, setMoving] = useState(false)
+  const sequenceRunning = useRef(false)
+  const lastSequenceId = useRef(0)
+  const keys = useRef<Record<string, boolean>>({})
+  const lastUpdatePos = useRef(new THREE.Vector3())
+  const lastUpdateRot = useRef(0)
 
   const computeArrows = (startPos: THREE.Vector3, panelPos: [number, number, number]) => {
     const aisleZ = 0
@@ -402,13 +453,15 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
 
   const goHome = () => new Promise<void>((resolve) => {
     if (!controlsRef.current) {
+      setMoving(false)
       resolve()
       return
     }
 
-    const timeline = gsap.timeline({ onComplete: resolve })
+    setMoving(true)
+    const timeline = gsap.timeline({ onComplete: () => { setMoving(false); resolve() } })
     timeline.to(camera.position, {
-      duration: 1.4,
+      duration: 3.5,
       ease: 'power2.inOut',
       x: -6,
       y: 4,
@@ -416,9 +469,9 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
       onUpdate: () => controlsRef.current?.update(),
     }, 0)
     timeline.to(controlsRef.current.target, {
-      duration: 1.4,
+      duration: 3.5,
       ease: 'power2.inOut',
-      x: 21,
+      x: 40,
       y: 2.8,
       z: 0,
       onUpdate: () => controlsRef.current?.update(),
@@ -431,9 +484,10 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
       return
     }
 
-    const timeline = gsap.timeline({ onComplete: resolve })
+    setMoving(true)
+    const timeline = gsap.timeline({ onComplete: () => window.setTimeout(resolve, 2000) })
     timeline.to(camera.position, {
-      duration: 1.8,
+      duration: 4.5,
       ease: 'power2.inOut',
       x: target.x,
       y: target.y,
@@ -441,7 +495,7 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
       onUpdate: () => controlsRef.current?.update(),
     }, 0)
     timeline.to(controlsRef.current.target, {
-      duration: 1.8,
+      duration: 4.5,
       ease: 'power2.inOut',
       x: target.x,
       y: target.y,
@@ -451,12 +505,75 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
   })
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      keys.current[event.key] = true
+    }
+    const handleKeyUp = (event: KeyboardEvent) => {
+      keys.current[event.key] = false
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
+
+  useFrame((state, delta) => {
+    const px = Math.round(state.camera.position.x * 100) / 100
+    const pz = Math.round(state.camera.position.z * 100) / 100
+    const rotation = Math.round(state.camera.rotation.y * 1000) / 1000
+    if (px !== lastUpdatePos.current.x || pz !== lastUpdatePos.current.z || rotation !== lastUpdateRot.current) {
+      onCameraUpdate?.({ x: px, z: pz, rotation })
+      lastUpdatePos.current.set(px, state.camera.position.y, pz)
+      lastUpdateRot.current = rotation
+    }
+
+    if (moving || sequenceRunning.current || !isOperationActive) return
+
+    const direction = new THREE.Vector3()
+    const frontVector = new THREE.Vector3()
+    const sideVector = new THREE.Vector3()
+    const speed = 0.75 * delta
+
+    camera.getWorldDirection(frontVector)
+    frontVector.y = 0
+    frontVector.normalize()
+    sideVector.copy(frontVector).cross(camera.up).normalize()
+
+    if (keys.current.ArrowUp || keys.current.w || keys.current.W) direction.add(frontVector)
+    if (keys.current.ArrowDown || keys.current.s || keys.current.S) direction.add(frontVector.clone().negate())
+    if (keys.current.ArrowLeft || keys.current.a || keys.current.A) direction.add(sideVector.clone().negate())
+    if (keys.current.ArrowRight || keys.current.d || keys.current.D) direction.add(sideVector)
+
+    if (direction.length() === 0) return
+
+    if (pathArrows.length > 0) setPathArrows([])
+    direction.normalize().multiplyScalar(speed)
+
+    const nextPos = camera.position.clone().add(direction)
+    const isInsidePanelRow1 = nextPos.z > -4.4 && nextPos.z < -3.6 && nextPos.x > -10 && nextPos.x < 10
+    const isInsidePanelRow2 = nextPos.z > 3.6 && nextPos.z < 4.4 && nextPos.x > -10 && nextPos.x < 10
+    const isOutsideRoom = nextPos.x < -24 || nextPos.x > 35 || Math.abs(nextPos.z) > 4.2
+
+    if (!isInsidePanelRow1 && !isInsidePanelRow2 && !isOutsideRoom) {
+      camera.position.add(direction)
+      controlsRef.current?.target.add(direction)
+      controlsRef.current?.update()
+    }
+  })
+
+  useEffect(() => {
     setPathArrows([])
 
-    if (activePanelIds.length === 0) return
+    if (sequenceId === 0 || sequenceId === lastSequenceId.current || activePanelIds.length === 0) return
+    lastSequenceId.current = sequenceId
 
     if (activePanelIds.length > 1) {
+      setBlinkingIds(activePanelIds)
       const timer = window.setTimeout(() => {
+        setBlinkingIds([])
         onSequenceDone?.()
       }, 5000)
       return () => window.clearTimeout(timer)
@@ -466,43 +583,47 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
     if (!placement) return
 
     let cancelled = false
+    sequenceRunning.current = true
     const [x, y, z] = placement.position
     const panelTarget = {
       x,
       y: y + (placement.doubleHeight ? 2.8 : 1.5),
       z,
-      camZ: z + (z > 0 ? 8 : -8),
+      camZ: z > 0 ? z - 8 : z + 8,
     }
 
     const run = async () => {
-      await wait(350)
-      if (cancelled) return
+      setBlinkingIds(activePanelIds)
 
-      const arrows = computeArrows(camera.position.clone(), [x, 0, z])
-      for (let index = 0; index < 3; index += 1) {
+      for (let cycle = 0; cycle < 2; cycle += 1) {
+        await wait(1000)
+        if (cancelled) return
+
+        const arrows = computeArrows(camera.position.clone(), [x, 0, z])
+        for (let index = 0; index < 3; index += 1) {
+          if (cancelled) return
+          setPathArrows(arrows)
+          await wait(350)
+          setPathArrows([])
+          await wait(250)
+        }
+
         if (cancelled) return
         setPathArrows(arrows)
-        await wait(260)
+        await wait(300)
+
+        await walkToPanel(panelTarget)
+        if (cancelled) return
         setPathArrows([])
-        await wait(180)
+
+        await goHome()
+        if (cancelled) return
       }
 
+      await wait(5000)
       if (cancelled) return
-      setPathArrows(arrows)
-      await wait(250)
-      if (cancelled) return
-
-      await walkToPanel(panelTarget)
-      if (cancelled) return
-      setPathArrows([])
-      await wait(650)
-      if (cancelled) return
-
-      await goHome()
-      if (cancelled) return
-      await wait(900)
-      if (cancelled) return
-
+      setBlinkingIds([])
+      sequenceRunning.current = false
       onSequenceDone?.()
     }
 
@@ -510,6 +631,9 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
 
     return () => {
       cancelled = true
+      sequenceRunning.current = false
+      setMoving(false)
+      setBlinkingIds([])
       setPathArrows([])
       gsap.killTweensOf(camera.position)
       if (controlsRef.current?.target) {
@@ -517,17 +641,49 @@ function CameraController({ activePanelIds, onSequenceDone }: { activePanelIds: 
         controlsRef.current.update()
       }
     }
-  }, [activePanelIds.join(','), camera, onSequenceDone, placements])
+  }, [activePanelKey, camera, onSequenceDone, placements, sequenceId])
 
   return (
     <>
-      <OrbitControls ref={controlsRef} target={defaultTarget} enablePan={false} minDistance={4} maxDistance={70} />
+      <OrbitControls
+        ref={controlsRef}
+        makeDefault
+        target={defaultTarget}
+        minPolarAngle={0}
+        maxPolarAngle={Math.PI}
+        enablePan={false}
+        enableRotate={false}
+        enableZoom={isOperationActive}
+        minDistance={4}
+        maxDistance={70}
+      />
       {pathArrows.map((arrow, index) => <PathArrow key={`${arrow.position.join('-')}-${index}`} {...arrow} index={index} />)}
+      <PanelGrid activePanelIds={blinkingIds} />
+      <Float speed={1} rotationIntensity={0.2} floatIntensity={0.2}>
+        <Text position={[0, 4.5, -8]} fontSize={0.6} color="#10b981" maxWidth={10} textAlign="center">
+          ELECTRICAL PANEL MONITORING
+        </Text>
+        <Text position={[0, 3.8, -8]} fontSize={0.2} color="#475569" fillOpacity={0.8}>
+          {moving ? 'Walking to panel...' : 'Use Arrow Keys to walk'}
+        </Text>
+      </Float>
     </>
   )
 }
 
-export function ThreePanelViewer({ activePanelIds = [], onSequenceDone }: { activePanelIds?: number[]; onSequenceDone?: () => void }) {
+export function ThreePanelViewer({
+  activePanelIds = [],
+  sequenceId = 0,
+  isOperationActive = false,
+  onCameraUpdate,
+  onSequenceDone,
+}: {
+  activePanelIds?: number[]
+  sequenceId?: number
+  isOperationActive?: boolean
+  onCameraUpdate?: (position: { x: number; z: number; rotation: number }) => void
+  onSequenceDone?: () => void
+}) {
   return (
     <Canvas
       shadows
@@ -546,8 +702,13 @@ export function ThreePanelViewer({ activePanelIds = [], onSequenceDone }: { acti
         }
       >
         <color attach="background" args={['#0a0a0a']} />
-        <CameraController activePanelIds={activePanelIds} onSequenceDone={onSequenceDone} />
-        <PanelGrid activePanelIds={activePanelIds} />
+        <CameraController
+          activePanelIds={activePanelIds}
+          sequenceId={sequenceId}
+          isOperationActive={isOperationActive}
+          onCameraUpdate={onCameraUpdate}
+          onSequenceDone={onSequenceDone}
+        />
         <Room />
       </Suspense>
     </Canvas>

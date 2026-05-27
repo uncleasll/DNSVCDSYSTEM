@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Sidebar } from './Sidebar'
 
 export function Layout() {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
 
   return (
     <div className="min-h-screen bg-slate-50">

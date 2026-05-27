@@ -27,6 +27,7 @@ export interface Operation {
   panelId: number
   unitId: string
   equipName: string
+  panelName?: string
   opType: 'KEY CLOSED' | 'KEY OPEN' | 'KEY ALERT'
   operator: string
   department: string
@@ -34,6 +35,14 @@ export interface Operation {
   status: WorkStatus
   notes: string
   operatedAt: string
+}
+
+export interface KeyBoxStatus {
+  unitId: string
+  keyStatus: 'KEY_OPEN' | 'KEY_CLOSED' | 'KEY_ALERT'
+  doorStatus: 'OPEN' | 'CLOSED' | 'ABNORMAL'
+  abnormal: boolean
+  updatedAt: string
 }
 
 export interface EquipmentItem {

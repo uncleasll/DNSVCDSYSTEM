@@ -1,13 +1,14 @@
 import { Info, QrCode, Search, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { MOCK_TEAMS, MOCK_UNITS } from '../../data/mockData'
-import { MOCK_REASONS, nowStamp } from '../../data/operations'
+import { registerOperation } from '../../api/operations'
+import { MOCK_REASONS } from '../../data/operations'
 import type { Operation } from '../../types'
 import { ModalShell } from './ModalShell'
 
 type Props = {
   onClose: () => void
-  onSubmit: (operations: Operation[]) => void
+  onSubmit: (operations: Operation[]) => void | Promise<void>
 }
 
 const demoQrCells = [
@@ -28,6 +29,7 @@ export function RegisterModal({ onClose, onSubmit }: Props) {
   const [reason, setReason] = useState(MOCK_REASONS[0])
   const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>(['UNIT-12B'])
   const [scanOpen, setScanOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [cameraReady, setCameraReady] = useState(false)
   const [detailUnitId, setDetailUnitId] = useState<string | null>(null)
   const searchRef = useRef<HTMLInputElement | null>(null)
@@ -46,27 +48,38 @@ export function RegisterModal({ onClose, onSubmit }: Props) {
   const completeQrScan = () => {
     setSelectedUnitIds((ids) => ids.includes('UNIT-12B') ? ids : ['UNIT-12B', ...ids])
     setScanOpen(false)
+    setSearchOpen(true)
   }
 
-  const submit = () => {
-    const operatedAt = nowStamp()
-    onSubmit(selectedUnitIds.map((unitId, index) => {
+  const openSearch = () => {
+    setSearchOpen((open) => !open)
+    window.setTimeout(() => searchRef.current?.focus(), 80)
+  }
+
+  const [submitting, setSubmitting] = useState(false)
+
+  const submit = async () => {
+    setSubmitting(true)
+    try {
+      const created = await Promise.all(selectedUnitIds.map((unitId) => {
       const unit = MOCK_UNITS.find((item) => item.unitId === unitId) ?? MOCK_UNITS[0]
 
-      return {
-        id: Date.now() + index,
+      return registerOperation({
         panelId: unit.id,
         unitId: unit.unitId,
         equipName: unit.name,
+        panelName: unit.name,
         opType: 'KEY CLOSED',
         operator: department,
         department,
         purpose: reason,
-        status: '진행중',
         notes: '',
-        operatedAt,
-      }
+      })
     }))
+      await onSubmit(created.map((operation) => ({ ...operation, equipName: operation.panelName || operation.equipName })))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   useEffect(() => {
@@ -115,48 +128,50 @@ export function RegisterModal({ onClose, onSubmit }: Props) {
         <div>
           <div className="mb-3 text-sm font-semibold">차단기 선택 <b className="text-red-500">*</b></div>
           <div className="grid grid-cols-2 gap-3">
-            <button type="button" onClick={() => setScanOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-lg border border-blue-500 font-semibold text-blue-600">
+            <button type="button" onClick={() => setScanOpen(true)} className="flex h-12 items-center justify-center gap-2 rounded-lg border border-blue-500 bg-blue-50 font-semibold text-blue-600 transition hover:bg-blue-100">
               <QrCode className="h-5 w-5" />QR 스캔
             </button>
-            <button type="button" onClick={() => searchRef.current?.focus()} className="flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-400 font-semibold text-slate-700">
+            <button type="button" onClick={openSearch} className={`flex h-12 items-center justify-center gap-2 rounded-lg border font-semibold transition ${searchOpen ? 'border-blue-500 bg-blue-600 text-white shadow-md' : 'border-slate-300 text-slate-700 hover:border-blue-300 hover:bg-blue-50'}`}>
               <Search className="h-5 w-5" />검색
             </button>
           </div>
-          <div className="relative mt-3">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-            <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Unit ID or equipment name..." className="h-12 w-full rounded-lg border border-slate-400 pl-12 pr-4 outline-none focus:border-blue-500" />
-          </div>
-          <div className="mt-3 max-h-52 overflow-y-auto rounded-lg border border-slate-200">
-            <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 bg-slate-50 text-slate-700">
-                <tr>{['기기번호', '키상태', '작업상태', '상세'].map((head) => <th key={head} className="px-3 py-2">{head}</th>)}</tr>
-              </thead>
-              <tbody>
-                {matches.map((unit) => (
-                  <tr key={unit.id} className="border-t border-slate-100">
-                    <td className="px-3 py-2 font-black">
-                      <label className="flex items-center gap-2">
-                        <input type="checkbox" checked={selectedUnitIds.includes(unit.unitId)} onChange={() => toggleUnit(unit.unitId)} />
-                        {unit.unitId}
-                      </label>
-                    </td>
-                    <td className="px-3 py-2">KEY CLOSED</td>
-                    <td className="px-3 py-2">대기</td>
-                    <td className="px-3 py-2">
-                      <button type="button" onClick={() => setDetailUnitId(unit.unitId)} className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 px-2 font-bold text-slate-700">
-                        <Info className="h-3.5 w-3.5" />상세
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className={`grid transition-all duration-300 ease-out ${searchOpen ? 'mt-3 grid-rows-[48px_1fr] opacity-100' : 'grid-rows-[0px_0fr] opacity-0'}`}>
+            <div className="relative min-h-0 overflow-hidden">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Unit ID or equipment name..." className="h-12 w-full rounded-lg border border-slate-300 bg-white pl-12 pr-4 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100" />
+            </div>
+            <div className="mt-3 max-h-52 min-h-0 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-sm">
+              <table className="w-full text-left text-xs">
+                <thead className="sticky top-0 bg-slate-50 text-slate-700">
+                  <tr>{['기기번호', '키상태', '작업상태', '상세'].map((head) => <th key={head} className="px-3 py-2">{head}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {matches.map((unit) => (
+                    <tr key={unit.id} className="border-t border-slate-100 transition hover:bg-blue-50/50">
+                      <td className="px-3 py-2 font-black">
+                        <label className="flex items-center gap-2">
+                          <input type="checkbox" checked={selectedUnitIds.includes(unit.unitId)} onChange={() => toggleUnit(unit.unitId)} />
+                          {unit.unitId}
+                        </label>
+                      </td>
+                      <td className="px-3 py-2">KEY CLOSED</td>
+                      <td className="px-3 py-2">대기</td>
+                      <td className="px-3 py-2">
+                        <button type="button" onClick={() => setDetailUnitId(unit.unitId)} className="inline-flex h-7 items-center gap-1 rounded-md border border-slate-300 px-2 font-bold text-slate-700 transition hover:border-blue-300 hover:text-blue-600">
+                          <Info className="h-3.5 w-3.5" />상세
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {selectedUnitIds.map((unitId) => <span key={unitId} className="rounded-md bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-600">{unitId}</span>)}
           </div>
         </div>
-        <button type="submit" disabled={selectedUnitIds.length === 0} className="mt-6 h-12 w-full rounded-lg bg-blue-600 text-lg font-bold text-white shadow-md hover:bg-blue-700 disabled:bg-slate-300">조작 등록</button>
+        <button type="submit" disabled={selectedUnitIds.length === 0 || submitting} className="mt-6 h-12 w-full rounded-lg bg-blue-600 text-lg font-bold text-white shadow-md hover:bg-blue-700 disabled:bg-slate-300">{submitting ? '등록 중...' : '조작 등록'}</button>
       </form>
       {scanOpen && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/80 p-6">

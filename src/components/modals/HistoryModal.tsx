@@ -1,8 +1,20 @@
 import { ModalShell } from './ModalShell'
 import { MOCK_HISTORY } from '../../data/mockData'
 import { StatusBadge } from '../ui/StatusBadge'
+import type { Operation } from '../../types'
 
-export function HistoryModal({ onClose }: { onClose: () => void }) {
+export function HistoryModal({ operations = [], onClose }: { operations?: Operation[]; onClose: () => void }) {
+  const rows = operations.length > 0
+    ? operations.map((operation) => ({
+      unitId: operation.unitId,
+      equipName: operation.equipName || operation.panelName || '',
+      status: operation.opType.replace(' ', '_'),
+      operator: operation.operator,
+      timestamp: operation.operatedAt,
+      workStatus: operation.status,
+    }))
+    : MOCK_HISTORY
+
   return (
     <ModalShell onClose={onClose} className="max-w-4xl">
       <div className="shrink-0 border-b border-slate-200 p-6">
@@ -13,7 +25,7 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
         <div className="mb-5 flex items-center gap-4">
           <select className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold"><option>전체 상태</option></select>
           <input type="date" className="h-10 rounded-lg border border-slate-200 px-4 text-sm font-semibold" />
-          <div className="ml-auto text-sm font-bold text-slate-500">20건</div>
+          <div className="ml-auto text-sm font-bold text-slate-500">{rows.length}건</div>
         </div>
         <div className="max-h-[calc(100vh-280px)] overflow-y-auto rounded-xl border border-slate-200">
           <table className="w-full text-left text-sm">
@@ -21,7 +33,7 @@ export function HistoryModal({ onClose }: { onClose: () => void }) {
               <tr>{['대상기기', '대상기기명', '기상태', '조작자', '일시', '작업상태'].map((head) => <th key={head} className="px-5 py-3">{head}</th>)}</tr>
             </thead>
             <tbody>
-              {MOCK_HISTORY.map((row) => (
+              {rows.map((row) => (
                 <tr key={`${row.unitId}-${row.timestamp}`} className="border-t border-slate-100">
                   <td className="px-5 py-3 font-bold text-blue-600">{row.unitId}</td>
                   <td className="px-5 py-3 font-semibold">{row.equipName}</td>

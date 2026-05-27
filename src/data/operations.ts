@@ -1,7 +1,7 @@
 import { MOCK_HISTORY, MOCK_TEAMS, MOCK_UNITS } from './mockData'
 import type { Operation } from '../types'
 
-export const MOCK_REASONS = ['Inspection', 'Maintenance', 'Fault response', 'Test', 'Other']
+export const MOCK_REASONS = ['정기 점검 후 복전', '설비 보수·교체', '예방 정비', '절연 시험', '부하 시험', '긴급 복전', '계획 개방', '기타']
 
 export const INITIAL_OPERATIONS: Operation[] = MOCK_HISTORY.slice(0, 6).map((item, index) => {
   const unit = MOCK_UNITS.find((candidate) => candidate.unitId === item.unitId)
