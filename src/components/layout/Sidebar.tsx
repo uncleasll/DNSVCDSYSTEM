@@ -1,4 +1,4 @@
-import { AlarmClock, Boxes, Gauge, History, Home, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react'
+import { AlarmClock, Boxes, History, Home, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const items = [
