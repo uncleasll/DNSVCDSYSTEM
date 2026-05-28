@@ -1,11 +1,5 @@
 import { PANEL_DATA } from '../../data/panels'
 
-type ActivePanel = {
-  id: number
-  status: string
-  description: string
-}
-
 type PanelCabinet = {
   id: string
   upperId: number
@@ -14,9 +8,7 @@ type PanelCabinet = {
 }
 
 type Props = {
-  cameraPos: { x: number; z: number; rotation: number }
   targetPanelIds?: number[]
-  activePanels?: ActivePanel[]
 }
 
 function buildCabinets(): PanelCabinet[] {
@@ -47,7 +39,7 @@ function buildCabinets(): PanelCabinet[] {
 
 const cabinets = buildCabinets()
 
-export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }: Props) {
+export function FloorPlan({ targetPanelIds = [] }: Props) {
   // Unitlar kattaroq ko'rinishi uchun viewBox va oraliqlar birga oshirildi.
   const width = 3400
   const height = 7000
@@ -65,7 +57,7 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
   }
 
   return (
-    <section className="flex h-[calc(100vh-104px)] min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+    <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
         <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" preserveAspectRatio="xMidYMid meet">
           <defs>
@@ -171,11 +163,6 @@ export function FloorPlan({ cameraPos, targetPanelIds = [], activePanels = [] }:
             <circle r="20" fill="#fff" opacity="0.9" />
           </g>
         </svg>
-      </div>
-
-      <div className="mt-2 grid grid-cols-2 gap-2 text-[10px] font-bold">
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-slate-500">ACTIVE <span className="float-right text-blue-600">{activePanels.length}</span></div>
-        <div className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-slate-500">CAM X <span className="float-right text-blue-600">{cameraPos.x.toFixed(1)}</span></div>
       </div>
     </section>
   )

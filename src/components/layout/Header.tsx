@@ -6,9 +6,10 @@ type Props = {
   title?: string
   section?: string
   alarmCount?: number
+  flush?: boolean
 }
 
-export function Header({ onRegister, title = '영동 1호기 고압차단기 위치안내시스템', section, alarmCount }: Props) {
+export function Header({ onRegister, title = '영동 1호기 고압차단기 위치안내시스템', section, alarmCount, flush = false }: Props) {
   const [time, setTime] = useState('13:30:59')
 
   useEffect(() => {
@@ -19,10 +20,10 @@ export function Header({ onRegister, title = '영동 1호기 고압차단기 위
   }, [])
 
   return (
-    <header className="mb-3 grid grid-cols-[minmax(320px,1fr)_132px_164px_auto] items-stretch gap-3">
-      <div className="min-w-0 rounded-lg border border-slate-200 bg-white px-4 py-2.5 shadow-sm">
+    <header className={`${flush ? 'h-full' : 'mb-3'} grid grid-cols-[minmax(320px,1fr)_132px_164px_auto] items-stretch gap-3`}>
+      <div className="flex min-w-0 flex-col items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-center shadow-sm">
         <div className="text-[10px] font-black uppercase tracking-wide text-blue-600">YEONGDONG POWER PLANT UNIT 1</div>
-        <div className="mt-1 flex min-w-0 items-center gap-3">
+        <div className="mt-1 flex min-w-0 items-center justify-center gap-3">
           <h1 className="truncate text-base font-black text-slate-950">{section ?? title}</h1>
           <span className="shrink-0 rounded-full border border-emerald-300 px-2.5 py-0.5 text-[10px] font-bold lowercase text-emerald-600">normal</span>
         </div>
@@ -43,7 +44,7 @@ export function Header({ onRegister, title = '영동 1호기 고압차단기 위
       </div>
       {onRegister && (
         <button type="button" onClick={onRegister} className="h-full min-w-36 rounded-lg bg-blue-600 px-8 text-sm font-black text-white shadow-sm transition hover:bg-blue-700">
-          REGISTER
+          조작등록
         </button>
       )}
     </header>

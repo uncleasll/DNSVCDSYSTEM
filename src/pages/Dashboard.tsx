@@ -26,7 +26,6 @@ export function Dashboard() {
   const [sequenceId, setSequenceId] = useState(0)
   const [activePanels, setActivePanelsState] = useState<ActivePanel[]>([])
   const [isOperationActive, setIsOperationActive] = useState(false)
-  const [cameraPos, setCameraPos] = useState({ x: -6, z: 0, rotation: 0 })
   const lastActivePanelsSerializedRef = useRef('[]')
 
   const refreshOperations = useCallback(async () => {
@@ -105,9 +104,13 @@ export function Dashboard() {
 
   return (
     <>
-      <Header />
-      <div className="grid h-[calc(100vh-104px)] min-h-0 grid-cols-[minmax(320px,360px)_minmax(0,1fr)_200px] gap-3 overflow-hidden">
-        <FloorPlan cameraPos={cameraPos} targetPanelIds={viewerPanelIds} activePanels={activePanels} />
+      <div className="grid h-[calc(100vh-32px)] min-h-0 grid-cols-[minmax(320px,360px)_minmax(0,1fr)_200px] grid-rows-[82px_minmax(0,1fr)] gap-3 overflow-hidden">
+        <div className="row-span-2 min-h-0">
+          <FloorPlan targetPanelIds={viewerPanelIds} />
+        </div>
+        <div className="col-span-2 min-w-0">
+          <Header flush />
+        </div>
         <main className="grid min-h-0 min-w-0 grid-rows-[minmax(180px,1fr)_238px] gap-3">
           {activePanels.length > 0 && (
             <div className="pointer-events-none absolute left-[380px] right-[220px] top-[118px] z-20 flex flex-col gap-1">
@@ -124,7 +127,6 @@ export function Dashboard() {
             activePanelIds={viewerPanelIds}
             sequenceId={sequenceId}
             isOperationActive={isOperationActive}
-            onCameraUpdate={setCameraPos}
             onSequenceDone={handleSequenceDone}
           />
           <div className="grid min-h-0 min-w-0 grid-cols-[230px_minmax(0,1fr)] gap-3">
@@ -153,17 +155,7 @@ export function Dashboard() {
                   <h2 className="text-[11px] font-black uppercase tracking-widest text-slate-600">시스템 상태</h2>
                   <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-600">정상가동</span>
                 </div>
-                <div className="grid h-[calc(100%-37px)] grid-cols-[104px_1fr] items-center gap-3 p-3">
-                  <div className="relative h-24 w-24">
-                    <svg viewBox="0 0 120 120" className="h-24 w-24 -rotate-90">
-                      <circle cx="60" cy="60" r="45" fill="none" stroke="#DBEAFE" strokeWidth="14" />
-                      <circle cx="60" cy="60" r="45" fill="none" stroke="#2563EB" strokeWidth="14" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 45 * 0.95} ${2 * Math.PI * 45}`} />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-xl font-black">95%</div>
-                      <div className="text-[10px] font-bold text-slate-500">normal</div>
-                    </div>
-                  </div>
+                <div className="grid h-[calc(100%-37px)] items-center gap-3 p-3">
                   <div className="space-y-2 text-xs font-bold">
                     <div className="flex justify-between rounded-lg bg-slate-50 px-3 py-2"><span className="text-slate-500">월간</span><span className="text-violet-600">{operations.length}건</span></div>
                     <div className="flex justify-between rounded-lg bg-slate-50 px-3 py-2"><span className="text-slate-500">진행중</span><span className="text-blue-600">{activeOperations.length}건</span></div>
@@ -177,10 +169,10 @@ export function Dashboard() {
         </main>
         <aside className="grid min-h-0 min-w-0 grid-rows-[minmax(120px,1fr)_52px_52px_52px_52px] gap-2 overflow-hidden">
           <StatusPanel operations={activeOperations} />
-          <ActionButton icon={PlusCircle} label="REGISTER" variant="blue" onClick={() => setModal('register')} />
-          <ActionButton icon={Play} label="START" variant="dark" onClick={() => setModal('start')} />
-          <ActionButton icon={CheckCircle} label="COMPLETE" variant="green" onClick={() => setModal('complete')} />
-          <ActionButton icon={HistoryIcon} label="HISTORY" variant="orange" onClick={() => setModal('history')} />
+          <ActionButton icon={PlusCircle} label="조작등록" variant="blue" onClick={() => setModal('register')} />
+          <ActionButton icon={Play} label="조작시작" variant="dark" onClick={() => setModal('start')} />
+          <ActionButton icon={CheckCircle} label="조작완료" variant="green" onClick={() => setModal('complete')} />
+          <ActionButton icon={HistoryIcon} label="이력조회" variant="orange" onClick={() => setModal('history')} />
         </aside>
       </div>
       {modal === 'register' && <RegisterModal onClose={() => setModal(null)} onSubmit={submitRegister} />}

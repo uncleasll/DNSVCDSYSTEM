@@ -110,7 +110,7 @@ export function RegisterModal({ onClose, onSubmit }: Props) {
       <form className="overflow-y-auto p-8" onSubmit={(event) => { event.preventDefault(); submit() }}>
         <div className="mb-6 text-center">
           <h2 className="text-2xl font-bold">조작 등록</h2>
-          <div className="mt-1 text-sm font-semibold text-slate-500">REGISTER</div>
+          <div className="mt-1 text-sm font-semibold text-slate-500">조작등록</div>
           <div className="mx-auto mt-3 h-px w-72 bg-slate-200" />
         </div>
         <label className="mb-4 block">

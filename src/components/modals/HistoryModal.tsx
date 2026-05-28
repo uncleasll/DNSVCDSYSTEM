@@ -19,7 +19,7 @@ export function HistoryModal({ operations = [], onClose }: { operations?: Operat
     <ModalShell onClose={onClose} className="max-w-4xl">
       <div className="shrink-0 border-b border-slate-200 p-6">
         <h2 className="text-2xl font-black">이력 조회</h2>
-        <div className="text-sm font-bold text-slate-500">HISTORY</div>
+        <div className="text-sm font-bold text-slate-500">이력조회</div>
       </div>
       <div className="min-h-0 flex-1 p-6">
         <div className="mb-5 flex items-center gap-4">

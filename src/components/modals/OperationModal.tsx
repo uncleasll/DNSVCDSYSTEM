@@ -65,7 +65,7 @@ export function OperationModal({ mode, operations = [], onClose, onConfirm }: Pr
           </div>
           <div>
             <h2 className="text-2xl font-black">{isStart ? '조작 시작' : '조작 완료'}</h2>
-            <div className="text-sm font-bold text-slate-500">{isStart ? 'START' : 'COMPLETE'}</div>
+            <div className="text-sm font-bold text-slate-500">{isStart ? '조작시작' : '조작완료'}</div>
           </div>
         </div>
       </div>

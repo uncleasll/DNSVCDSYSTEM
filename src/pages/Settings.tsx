@@ -3,7 +3,7 @@ import { Header } from '../components/layout/Header'
 
 const settings = [
   { icon: Wifi, title: 'GEN 연동', desc: 'Generator link status and reconnect policy', enabled: true },
-  { icon: Bell, title: '기본전환 연동', desc: 'Default transfer signal monitoring', enabled: true },
+  { icon: Bell, title: '키보관함연동', desc: 'Default transfer signal monitoring', enabled: true },
   { icon: Shield, title: 'Alarm escalation', desc: 'Notify operator when KEY-ALERT is active', enabled: true },
   { icon: Database, title: 'Demo data sync', desc: 'Use local MVP data until HW API is connected', enabled: true },
 ]
