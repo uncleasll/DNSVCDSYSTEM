@@ -61,10 +61,10 @@ export function Dashboard() {
     return () => window.clearInterval(interval)
   }, [])
 
-  const submitRegister = async () => {
-    await refreshOperations()
-    setModal('success')
-  }
+  const submitRegister = async (_operations: Operation[]) => {
+  await refreshOperations()
+  setModal('success')
+}
 
   const startOperations = async (selectedOperations: Operation[]) => {
     const panelIds = selectedOperations.map((operation) => operation.panelId)
